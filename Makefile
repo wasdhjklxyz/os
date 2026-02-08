@@ -57,4 +57,4 @@ qemu: disk.img
 		-d cpu_reset,int -D qemu.log
 
 clean:
-	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf
+	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf *.log
