@@ -174,13 +174,15 @@ void serial_init(void) {
 }
 
 void serial_putc(char c) {
-  while (!(inb(COM1 + 5) & 0x20)); // Wait for transmit empty
+  while (!(inb(COM1 + 5) & 0x20))
+    ; // Wait for transmit empty
   outb(COM1, c);
 }
 
 void serial_puts(const char *str) {
   while (*str) {
-    if (*str == '\n') serial_putc('\r');
+    if (*str == '\n')
+      serial_putc('\r');
     serial_putc(*str++);
   }
 }
@@ -218,7 +220,8 @@ void serial_putu64(uint64_t val) {
 }
 
 void ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf) {
-  while (inb(ATA_IO + 7) & 0x80); // Wait for drive to be ready
+  while (inb(ATA_IO + 7) & 0x80)
+    ; // Wait for drive to be ready
 
   outb(ATA_IO + 2, sectors);                     // Sector count
   outb(ATA_IO + 3, (uint8_t)lba);                // LBA low
@@ -245,7 +248,8 @@ void setup_user_pdte(void) {
 
 void generic_isr(void) {
   serial_puts("ISR!!!!!!!!!!!1!\n");
-  while (1) asm volatile("hlt");
+  while (1)
+    asm volatile("hlt");
 }
 
 void setup_idt(void) {
@@ -394,5 +398,6 @@ void kern_start(void) {
   setup_idt();
   serial_puts("IDT setup\n");
   enter_user_mode();
-  while (1) asm volatile("hlt");
+  while (1)
+    asm volatile("hlt");
 }
