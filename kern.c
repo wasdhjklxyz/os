@@ -48,6 +48,7 @@
 #define SEG_E 0x08
 #define SEG_DC 0x04 // Data: Segment grows down, Code -> Exec <= RPL
 #define SEG_RW 0x02
+#define SEG_LIM 0x000FFFFF
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -371,13 +372,13 @@ void setup_gdt(void) {
   };
   */
 
-  set_gdt_ent(&gdt.kern_code, 0, 0x000FFFFF, SEG_G | SEG_L,
+  set_gdt_ent(&gdt.kern_code, 0, SEG_LIM, SEG_G | SEG_L,
               SEG_P | SEG_S | SEG_E | SEG_RW);
-  set_gdt_ent(&gdt.kern_data, 0, 0x000FFFFF, SEG_G | SEG_DB,
+  set_gdt_ent(&gdt.kern_data, 0, SEG_LIM, SEG_G | SEG_DB,
               SEG_P | SEG_S | SEG_RW);
-  set_gdt_ent(&gdt.user_data, 0, 0x000FFFFF, SEG_G | SEG_DB,
+  set_gdt_ent(&gdt.user_data, 0, SEG_LIM, SEG_G | SEG_DB,
               SEG_P | SEG_DPL3 | SEG_S | SEG_RW);
-  set_gdt_ent(&gdt.user_code, 0, 0x000FFFFF, SEG_G | SEG_L,
+  set_gdt_ent(&gdt.user_code, 0, SEG_LIM, SEG_G | SEG_L,
               SEG_P | SEG_DPL3 | SEG_S | SEG_E | SEG_RW);
 
   struct gdtr gdtr = {.limit = sizeof(gdt) - 1, .base = (uint64_t)&gdt};
