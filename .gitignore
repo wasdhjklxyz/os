@@ -4,4 +4,3 @@
 *.bin
 *.o
 *.elf
-.clang-format
