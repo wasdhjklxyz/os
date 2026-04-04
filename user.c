@@ -13,7 +13,16 @@ static inline long syscall1(long num, long arg1) {
   return ret;
 }
 
+void do_page_fault(void) {
+  unsigned long *foo = (unsigned long *)0x1000;
+  unsigned long bar = *foo;
+  (void)bar;
+}
+
 int main(void) {
   long result = syscall1(0xDEAD, 0xBEEF);
+
+  do_page_fault();
+
   (void)result;
 }
