@@ -24,6 +24,7 @@
 #define USER_DATA_SEL (0x18 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
 #define USER_CODE_SEL (0x20 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
 #define KERN_CODE_SEL 0x08
+#define TSS_SEL 0x28
 
 #define MSR_EFER 0xC0000080
 #define MSR_STAR 0xC0000081
@@ -49,6 +50,21 @@
 #define SEG_DC 0x04 // Data: Segment grows down, Code -> Exec <= RPL
 #define SEG_RW 0x02
 #define SEG_LIM 0x000FFFFF
+
+#define SYS_SEG_P SEG_P
+#define SYS_SEG_DPL3 SEG_DPL3
+#define SYS_SEG_TYPE_LDT 0x02
+#define SYS_SEG_TYPE_TSS_AVAIL 0x09
+#define SYS_SEG_TYPE_TSS_BUSY 0x0B
+#define SYS_SEG_TYPE_CALL_GATE 0x0C
+#define SYS_SEG_TYPE_INT_GATE 0x0E
+#define SYS_SEG_TYPE_TRAP_GATE 0x0F
+#define SYS_SEG_LIM SEG_LIM
+// #define SET_TSS_PTR(field, addr)                                            \
+//   do {                                                                      \
+//     tss.field##_0 = (uint32_t)(addr);                                       \
+//     tss.field##_1 = (uint32_t)(addr >> 32);                                 \
+//   } while (0)
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -86,27 +102,44 @@ static struct {
 
 static uint8_t syscall_stack[0x1000] __attribute__((aligned(16))); // 4KB
 
-/*
 static struct {
-  uint32_t io_map_base;
-  uint32_t r5;
-  uint64_t r4;
-  uint64_t r3;
-  uint64_t ist7;
-  uint64_t ist6;
-  uint64_t ist5;
-  uint64_t ist4;
-  uint64_t ist3;
-  uint64_t ist2;
-  uint64_t ist1;
-  uint64_t r2;
-  uint64_t r1;
-  uint64_t rsp2;
-  uint64_t rsp1;
-  uint64_t rsp0;
-  uint64_t r0;
-} __attribute__((aligned(16))) tss;
-*/
+  uint32_t _;
+  uint32_t rsp0_1;
+  uint32_t rsp0_0;
+  uint32_t rsp1_1;
+  uint32_t rsp1_0;
+  uint32_t rsp2_1;
+  uint32_t rsp2_0;
+  uint64_t __;
+  uint32_t ist1_1;
+  uint32_t ist1_0;
+  uint32_t ist2_1;
+  uint32_t ist2_0;
+  uint32_t ist3_1;
+  uint32_t ist3_0;
+  uint32_t ist4_1;
+  uint32_t ist4_0;
+  uint32_t ist5_1;
+  uint32_t ist5_0;
+  uint32_t ist6_1;
+  uint32_t ist6_0;
+  uint32_t ist7_1;
+  uint32_t ist7_0;
+  uint64_t ___;
+  uint16_t ____;
+  uint16_t iopb_base; // IOPB ignored if set to >= TSS size
+} __attribute__((packed, aligned(16))) tss = {0};
+
+struct gdt_ent_sys {
+  uint16_t limit0;
+  uint16_t base0;
+  uint8_t base1;
+  uint8_t access_type;
+  uint8_t flags_limit1;
+  uint8_t base2;
+  uint32_t base3;
+  uint32_t _;
+} __attribute__((packed));
 
 struct gdt_ent {
   uint16_t limit;
@@ -128,6 +161,7 @@ static struct {
   struct gdt_ent kern_data;
   struct gdt_ent user_data;
   struct gdt_ent user_code;
+  struct gdt_ent_sys tss_sel;
 } __attribute__((packed, aligned(16))) gdt = {0};
 
 static inline void outb(uint16_t port, uint8_t val) {
@@ -162,6 +196,10 @@ static inline void wrmsr(uint64_t msr, uint64_t val) {
 
 static inline void lgdt(const struct gdtr *gdtr_ptr) {
   asm volatile("lgdt %0" : : "m"(*gdtr_ptr) : "memory");
+}
+
+static inline void ltr(uint16_t tss_sel) {
+  asm volatile("ltr %0" : : "m"(tss_sel) : "memory");
 }
 
 void serial_init(void) {
@@ -352,26 +390,20 @@ void set_gdt_ent(struct gdt_ent *ent, uint64_t base, uint32_t limit,
   ent->base2 = (uint8_t)(base >> 24);
 }
 
+void set_gdt_ent_sys(struct gdt_ent_sys *ent, uint64_t base, uint32_t limit,
+                     uint8_t flags, uint8_t access_type) {
+  ent->limit0 = (uint16_t)limit;
+  ent->base0 = (uint16_t)base;
+  ent->base1 = (uint8_t)(base >> 16);
+  ent->access_type = access_type;
+  ent->flags_limit1 = ((flags & 0xF) << 4) | ((limit >> 16) & 0x00FF);
+  ent->base2 = (uint8_t)(base >> 8);
+  ent->base3 = (uint32_t)(base >> 8);
+}
+
 void setup_gdt(void) {
-  // TODO: bootloader already "presaved" us a spot to put the TSS in
-
-  /*
-  uint64_t base = (uint64_t)&tss;
-  uint64_t limit = sizeof(tss) - 1;
-
-  struct tss_sel {
-    uint64_t reserved;
-    uint64_t base1;
-    uint8_t base2;
-    uint8_t flags;
-    uint8_t limit1;
-    uint8_t access_byte;
-    uint8_t base3;
-    uint16_t base4;
-    uint16_t limit2;
-  };
-  */
-
+  set_gdt_ent_sys(&gdt.tss_sel, 0, SYS_SEG_LIM, SEG_G,
+                  SYS_SEG_P | SYS_SEG_TYPE_TSS_AVAIL);
   set_gdt_ent(&gdt.kern_code, 0, SEG_LIM, SEG_G | SEG_L,
               SEG_P | SEG_S | SEG_E | SEG_RW);
   set_gdt_ent(&gdt.kern_data, 0, SEG_LIM, SEG_G | SEG_DB,
@@ -385,10 +417,16 @@ void setup_gdt(void) {
   lgdt(&gdtr);
 }
 
+void setup_tss(void) {
+  tss.iopb_base = (uint16_t)(sizeof(tss) - 1); // ignore IOPB
+  ltr(TSS_SEL); // FIXME: Calculate the actual sel not hardcoded magic
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
   setup_gdt();
+  setup_tss();
   disable_pic();
   enable_syscall_sysret();
   serial_putu32((uint32_t)USER_OFFSET);
