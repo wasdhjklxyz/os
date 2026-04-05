@@ -195,10 +195,7 @@ void setup_user_pdte(void) {
 }
 
 void exception_handler(long vec, long err) {
-  serial_puts("exception: v=");
-  serial_putu64(vec);
-  serial_puts("e=");
-  serial_putu64(err);
+  serial_printf("exception: v=%b e=%w\n", vec, err);
 }
 
 void enter_user_mode(void) {
@@ -263,10 +260,7 @@ long syscall_dispatch(long num, long arg1, long arg2, long arg3, long arg4,
   (void)arg3;
   (void)arg4;
   (void)arg5;
-  serial_puts("syscall!!!!!");
-  serial_putu64(num);
-  serial_putu64(arg1);
-  serial_puts("!!!!!llacsys");
+  serial_printf("syscall: num=%d arg1=%d\n", num, arg1);
   return num;
 }
 
@@ -319,7 +313,6 @@ void kern_start(void) {
   setup_tss();
   disable_pic();
   enable_syscall_sysret();
-  serial_putu32((uint32_t)USER_OFFSET);
   ata_pio_read(USER_LBA, USER_SECTORS, (uint32_t *)USER_OFFSET);
   serial_puts("user load done\n");
   setup_user_pdte();

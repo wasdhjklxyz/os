@@ -4,11 +4,34 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "kern_serial.h"
+#include <stdarg.h>
+
 #include "kern_io.h"
+#include "kern_serial.h"
 #include "types.h"
 
 #define COM1 0x3F8
+
+#define U8_HEX_STR_LEN 5
+#define U16_HEX_STR_LEN 7
+#define U32_HEX_STR_LEN 11
+#define U64_HEX_STR_LEN 19
+
+static void __putx(uint64_t val, size_t len) {
+  int i;
+  uint8_t n;
+  char str[len];
+
+  str[0] = '0';
+  str[1] = 'x';
+  for (i = len - 4; i >= 0; i--, val >>= 4) {
+    n = val & 0xF;
+    str[i + 2] = n < 10 ? n + '0' : n + 'A' - 10;
+  }
+  str[len - 1] = '\0';
+
+  serial_puts(str);
+}
 
 void serial_init(void) {
   io_outb(COM1 + 1, 0x00); // Disable all interrupts
@@ -34,34 +57,33 @@ void serial_puts(const char *str) {
   }
 }
 
-void serial_putu32(uint32_t val) {
-  int i;
-  uint8_t n;
-  char str[11];
+void serial_printf(const char *fmt, ...) {
+  va_list ap;
 
-  str[0] = '0';
-  str[1] = 'x';
-  for (i = 7; i >= 0; i--, val >>= 4) {
-    n = val & 0xF;
-    str[i + 2] = n < 10 ? n + '0' : n + 'A' - 10;
+  va_start(ap, fmt);
+
+  while (*fmt) {
+    if (*fmt == '%' && *(++fmt)) {
+      switch (*fmt++) {
+      case 'b':
+        __putx(va_arg(ap, int), U8_HEX_STR_LEN);
+        continue;
+      case 'w':
+        __putx(va_arg(ap, int), U16_HEX_STR_LEN);
+        continue;
+      case 'd':
+        __putx(va_arg(ap, uint32_t), U32_HEX_STR_LEN);
+        continue;
+      case 'q':
+        __putx(va_arg(ap, uint64_t), U64_HEX_STR_LEN);
+        continue;
+      }
+    }
+
+    if (*fmt == '\n')
+      serial_putc('\r');
+    serial_putc(*fmt++);
   }
-  str[10] = '\0';
 
-  serial_puts(str);
-}
-
-void serial_putu64(uint64_t val) {
-  int i;
-  uint8_t n;
-  char str[19];
-
-  str[0] = '0';
-  str[1] = 'x';
-  for (i = 15; i >= 0; i--, val >>= 4) {
-    n = val & 0xF;
-    str[i + 2] = n < 10 ? n + '0' : n + 'A' - 10;
-  }
-  str[18] = '\0';
-
-  serial_puts(str);
+  va_end(ap);
 }

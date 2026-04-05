@@ -12,7 +12,6 @@
 void serial_init(void);
 void serial_putc(char c);
 void serial_puts(const char *str);
-void serial_putu32(uint32_t val);
-void serial_putu64(uint64_t val);
+void serial_printf(const char *fmt, ...);
 
 #endif // __SERIAL_H

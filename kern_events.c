@@ -102,11 +102,7 @@ static struct {
 };
 
 void __events_handler(long vec, long err) {
-  serial_puts("exception: v=");
-  serial_putu32(vec);
-  serial_puts(" e=");
-  serial_putu32(err);
-  serial_putc('\n');
+  serial_printf("exception: v=%b e=%w\n", vec, err);
   asm("hlt");
 }
 
