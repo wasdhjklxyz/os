@@ -141,13 +141,12 @@ struct gdt_ent_sys {
   uint32_t _;
 } __attribute__((packed));
 
-struct gdt_ent {
-  uint16_t limit;
-  uint16_t base0;
-  uint8_t base1;
+struct gdt_ent { // Base and limit ignored in 64-bit LM
+  uint32_t _;
+  uint8_t __;
   uint8_t access;
-  uint8_t flags_limit;
-  uint8_t base2;
+  uint8_t flags;
+  uint8_t ___;
 } __attribute__((packed));
 
 struct gdtr {
@@ -380,14 +379,9 @@ void disable_pic(void) {
   outb(PIC_SLAVE_DATA, 0xFF);
 }
 
-void set_gdt_ent(struct gdt_ent *ent, uint64_t base, uint32_t limit,
-                 uint8_t flags, uint8_t access) {
-  ent->limit = (uint16_t)limit;
-  ent->base0 = (uint16_t)base;
-  ent->base1 = (uint8_t)(base >> 16);
+void set_gdt_ent(struct gdt_ent *ent, uint8_t flags, uint8_t access) {
   ent->access = access;
-  ent->flags_limit = ((flags & 0xF) << 4) | ((limit >> 16) & 0x00FF);
-  ent->base2 = (uint8_t)(base >> 24);
+  ent->flags = (flags & 0xF) << 4;
 }
 
 void set_gdt_ent_sys(struct gdt_ent_sys *ent, uint64_t base, uint32_t limit,
@@ -404,13 +398,11 @@ void set_gdt_ent_sys(struct gdt_ent_sys *ent, uint64_t base, uint32_t limit,
 void setup_gdt(void) {
   set_gdt_ent_sys(&gdt.tss_sel, (uint64_t)&tss, sizeof(tss) - 1, SEG_G,
                   SYS_SEG_P | SYS_SEG_TYPE_TSS_AVAIL);
-  set_gdt_ent(&gdt.kern_code, 0, SEG_LIM, SEG_G | SEG_L,
-              SEG_P | SEG_S | SEG_E | SEG_RW);
-  set_gdt_ent(&gdt.kern_data, 0, SEG_LIM, SEG_G | SEG_DB,
-              SEG_P | SEG_S | SEG_RW);
-  set_gdt_ent(&gdt.user_data, 0, SEG_LIM, SEG_G | SEG_DB,
+  set_gdt_ent(&gdt.kern_code, SEG_G | SEG_L, SEG_P | SEG_S | SEG_E | SEG_RW);
+  set_gdt_ent(&gdt.kern_data, SEG_G | SEG_DB, SEG_P | SEG_S | SEG_RW);
+  set_gdt_ent(&gdt.user_data, SEG_G | SEG_DB,
               SEG_P | SEG_DPL3 | SEG_S | SEG_RW);
-  set_gdt_ent(&gdt.user_code, 0, SEG_LIM, SEG_G | SEG_L,
+  set_gdt_ent(&gdt.user_code, SEG_G | SEG_L,
               SEG_P | SEG_DPL3 | SEG_S | SEG_E | SEG_RW);
 
   struct gdtr gdtr = {.limit = sizeof(gdt) - 1, .base = (uint64_t)&gdt};
