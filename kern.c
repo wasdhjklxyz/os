@@ -60,11 +60,11 @@
 #define SYS_SEG_TYPE_INT_GATE 0x0E
 #define SYS_SEG_TYPE_TRAP_GATE 0x0F
 #define SYS_SEG_LIM SEG_LIM
-// #define SET_TSS_PTR(field, addr)                                            \
-//   do {                                                                      \
-//     tss.field##_0 = (uint32_t)(addr);                                       \
-//     tss.field##_1 = (uint32_t)(addr >> 32);                                 \
-//   } while (0)
+#define SET_TSS_PTR(field, addr)                                               \
+  do {                                                                         \
+    tss.field##_0 = (uint32_t)(addr);                                          \
+    tss.field##_1 = (uint32_t)(addr >> 32);                                    \
+  } while (0)
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -101,6 +101,8 @@ static struct {
 } __attribute__((aligned(16))) swapgs_data;
 
 static uint8_t syscall_stack[0x1000] __attribute__((aligned(16))); // 4KB
+static uint8_t rsp0_stack[0x1000] __attribute__((aligned(16)));    // 4KB
+static uint8_t ist1_stack[0x1000] __attribute__((aligned(16)));    // 4KB
 
 static struct {
   uint32_t _;
@@ -410,6 +412,8 @@ void setup_gdt(void) {
 }
 
 void setup_tss(void) {
+  SET_TSS_PTR(rsp0, (uint64_t)&rsp0_stack[0x1000]);
+  SET_TSS_PTR(ist1, (uint64_t)&ist1_stack[0x1000]);
   tss.iopb_base = (uint16_t)(sizeof(tss) - 1); // ignore IOPB
   ltr(TSS_SEL); // FIXME: Calculate the actual sel not hardcoded magic
 }
