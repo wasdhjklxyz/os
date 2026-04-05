@@ -26,7 +26,10 @@ kern.o: kern.c user.bin
 	$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
 	gcc -DUSER_OFFSET=$(USER_OFFSET) -DUSER_LBA=$(USER_LBA) -DUSER_SECTORS=$(USER_SECTORS) -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
-kern.elf: kern_entry.o kern.o
+kern_serial.o: kern_serial.c
+	gcc -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+
+kern.elf: kern_entry.o kern_serial.o kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
 
 kern.bin: kern.elf
