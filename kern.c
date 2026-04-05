@@ -194,10 +194,6 @@ void setup_user_pdte(void) {
   pdt[PDTE_USER] |= PTT_US;
 }
 
-void exception_handler(long vec, long err) {
-  serial_printf("exception: v=%b e=%w\n", vec, err);
-}
-
 void enter_user_mode(void) {
   asm volatile("movq %0, %%rax\n\t"
                "movw %%ax, %%ds\n\t"
