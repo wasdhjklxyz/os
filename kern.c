@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include "types.h"
+
 /* NOTE: This is so my stupid fuck LSP doesnt bitch about these being undefed */
 #ifndef USER_LBA
 #define USER_LBA 0
@@ -65,11 +67,6 @@
     tss.field##_0 = (uint32_t)(addr);                                          \
     tss.field##_1 = (uint32_t)(addr >> 32);                                    \
   } while (0)
-
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long uint64_t;
 
 extern void syscall_entry(void);
 extern void exception_handler_stub(void);
