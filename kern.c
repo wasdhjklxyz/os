@@ -396,7 +396,7 @@ void set_gdt_ent_sys(struct gdt_ent_sys *ent, uint64_t base, uint32_t limit,
 }
 
 void setup_gdt(void) {
-  set_gdt_ent_sys(&gdt.tss_sel, (uint64_t)&tss, sizeof(tss) - 1, SEG_G,
+  set_gdt_ent_sys(&gdt.tss_sel, (uint64_t)&tss, sizeof(tss) - 1, 0,
                   SYS_SEG_P | SYS_SEG_TYPE_TSS_AVAIL);
   set_gdt_ent(&gdt.kern_code, SEG_G | SEG_L, SEG_P | SEG_S | SEG_E | SEG_RW);
   set_gdt_ent(&gdt.kern_data, SEG_G | SEG_DB, SEG_P | SEG_S | SEG_RW);
