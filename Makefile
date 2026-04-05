@@ -1,69 +1,70 @@
-#
-# Copyright (c) 2025, uiop <uiop@wasdhjkl.xyz>
-#
-# SPDX-License-Identifier: BSD-2-Clause
-#
+include config.mk
 
-# FIXME: Fuck these stupid fucking stupid fuck magic numbers
-KERN_OFFSET := 0x7E00
+CC      := gcc
+LD      := ld
+NASM    := nasm
+OBJCOPY := objcopy
 
-# FIXME: Number came out of my ass
-USER_OFFSET := 0x600000
+CFLAGS  := -Werror -Wextra -Wall -Wno-error=comment \
+					 -fno-stack-protector -ffreestanding -nostdlib \
+					 -m64 -O0 -g -c
 
-# FIXME: Fucking sucks
-USER_LBA    := 32
-#$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
+NASMFLAGS := -f elf64
 
-boot.bin: boot.asm kern.bin user.bin
-	$(eval KERN_SECTORS := $(shell echo $$(( ($$(stat -f%z kern.bin 2>/dev/null || stat -c%s kern.bin) + 511) / 512 ))))
-	nasm -f bin -DKERN_OFFSET=$(KERN_OFFSET) -DKERN_SECTORS=$(KERN_SECTORS) $< -o $@
+KERN_C   := $(wildcard $(KERN_DIR)/*.c)
+KERN_ASM := $(wildcard $(KERN_DIR)/*.asm)
+KERN_OBJ := $(KERN_ASM:.asm=.o) $(KERN_C:.c=.o)
+KERN_OBJ := $(KERN_DIR)/_start.o $(KERN_DIR)/_start64.o \
+            $(filter-out %/_start.o %/_start64.o, $(KERN_ASM:.asm=.o) $(KERN_C:.c=.o))
 
-kern_entry.o: kern_entry.asm
-	nasm -f elf64 $< -o $@
+USER_C   := $(wildcard $(USER_DIR)/*.c)
+USER_ASM := $(wildcard $(USER_DIR)/*.asm)
+USER_OBJ := $(USER_ASM:.asm=.o) $(USER_C:.c=.o)
 
-kern_events_stub.o: kern_events.asm
-	nasm -f elf64 $< -o $@
+sector_count = $(shell echo $$(( ($$(stat -c%s $(1)) + 511) / 512 )))
 
-kern_events.o: kern_events.c
-	gcc -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+.PHONY: all qemu clean
 
-kern.o: kern.c user.bin
-	# FIXME: Dogshit. Why calculate this again
-	$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
-	gcc -DUSER_OFFSET=$(USER_OFFSET) -DUSER_LBA=$(USER_LBA) -DUSER_SECTORS=$(USER_SECTORS) -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+all: disk.img
 
-kern_serial.o: kern_serial.c
-	gcc -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+$(BOOT_DIR)/mbr.bin: $(BOOT_DIR)/mbr.asm kern.bin user.bin
+	$(NASM) -f bin \
+		-DKERN_OFFSET=$(KERN_OFFSET) \
+		-DKERN_SECTORS=$(call sector_count,kern.bin) \
+		-DUSER_LBA=$(USER_LBA) \
+		$< -o $@
 
-kern.elf: kern_entry.o kern_serial.o kern_events_stub.o kern_events.o kern.o
-	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
+kern.elf: $(KERN_OBJ)
+	$(LD) -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
 
-kern.bin: kern.elf
-	objcopy -O binary -j .text -j .rodata -j .data $< $@
+user.elf: $(USER_OBJ)
+	$(LD) -m elf_x86_64 -Ttext $(USER_OFFSET) -o $@ $^
 
-user_entry.o: user_entry.asm
-	nasm -f elf64 $< -o $@
+%.bin: %.elf
+	$(OBJCOPY) -O binary -j .text -j .rodata -j .data $< $@
 
-user.o: user.c
-	gcc -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) -DKERN_OFFSET=$(KERN_OFFSET) \
+		-DUSER_OFFSET=$(USER_OFFSET) \
+		-DUSER_SECTORS=$(call sector_count,user.bin) \
+		-DUSER_LBA=$(USER_LBA) $< -o $@
 
-user.elf: user_entry.o user.o
-	ld -m elf_x86_64 -Ttext $(USER_OFFSET) -o $@ $^
+%.o: %.asm
+	$(NASM) $(NASMFLAGS) \
+		-DKERN_OFFSET=$(KERN_OFFSET) \
+		-DUSER_OFFSET=$(USER_OFFSET) $< -o $@
 
-user.bin: user.elf
-	objcopy -O binary -j .text -j .rodata -j .data $< $@
-
-disk.img: boot.bin kern.bin user.bin
-	# FIXME: Dogshit why we calculating this twice??
-	$(eval KERN_SECTORS := $(shell echo $$(( ($$(stat -f%z kern.bin 2>/dev/null || stat -c%s kern.bin) + 511) / 512 ))))
-	dd if=/dev/zero of=$@ bs=512 count=2048
-	dd if=boot.bin of=$@ bs=512 count=1 conv=notrunc
-	dd if=kern.bin of=$@ bs=512 seek=1 conv=notrunc
-	dd if=user.bin of=$@ bs=512 seek=$(USER_LBA) conv=notrunc
+disk.img: $(BOOT_DIR)/mbr.bin kern.bin user.bin
+	dd if=/dev/zero of=$@ bs=512 count=2048 2>/dev/null
+	dd if=$(BOOT_DIR)/mbr.bin of=$@ bs=512 count=1 conv=notrunc 2>/dev/null
+	dd if=kern.bin of=$@ bs=512 seek=1 conv=notrunc 2>/dev/null
+	dd if=user.bin of=$@ bs=512 seek=$(USER_LBA) conv=notrunc 2>/dev/null
 
 qemu: disk.img
-	qemu-system-x86_64 -s -S -drive file=$<,format=raw -m 1G -no-reboot -nographic \
+	qemu-system-x86_64 -s -S -drive file=$<,format=raw \
+		-m 1G -no-reboot -nographic \
 		-d cpu_reset,int -D qemu.log
 
 clean:
-	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf *.log
+	rm -f $(KERN_OBJ) $(USER_OBJ) *.bin *.elf *.img *.log \
+		$(BOOT_DIR)/*.bin

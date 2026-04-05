@@ -1,15 +1,15 @@
-/*
+/**
  * Copyright (c) 2026, uiop <uiop@wasdhjkl.xyz>
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "kern_serial.h"
+#include "serial.h"
 #include "types.h"
 
-#define __IDT_SIZE_MIN 32
-#define __IDT_SIZE_MAX 256
-#define IDT_SIZE __IDT_SIZE_MIN
+#define IDT_SIZE_MIN 32
+#define IDT_SIZE_MAX 256
+#define IDT_SIZE IDT_SIZE_MIN
 
 struct __int_trap_gate {
   uint64_t off;
@@ -72,7 +72,7 @@ extern void __events_ac_stub(void);
 extern void __events_mc_stub(void);
 extern void __events_xf_stub(void);
 
-STATIC_ASSERT(IDT_SIZE >= __IDT_SIZE_MIN && IDT_SIZE <= __IDT_SIZE_MAX);
+STATIC_ASSERT(IDT_SIZE >= IDT_SIZE_MIN && IDT_SIZE <= IDT_SIZE_MAX);
 static struct {
   struct __int_trap_gate_desc table[IDT_SIZE];
   struct __int_trap_gate gates[IDT_SIZE];

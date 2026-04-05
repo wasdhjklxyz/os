@@ -1,13 +1,13 @@
-/*
- * Copyright (c) 2025, uiop <uiop@wasdhjkl.xyz>
+/**
+ * Copyright (c) 2026, uiop <uiop@wasdhjkl.xyz>
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
 #include <stdarg.h>
 
-#include "kern_io.h"
-#include "kern_serial.h"
+#include "io.h"
+#include "serial.h"
 #include "types.h"
 
 #define COM1 0x3F8

@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2025, uiop <uiop@wasdhjkl.xyz>
+/**
+ * Copyright (c) 2026, uiop <uiop@wasdhjkl.xyz>
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -24,5 +24,8 @@ static inline uint32_t io_inl(uint16_t port) {
   asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
   return ret;
 }
+
+void io_disable_pic(void);
+void io_ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf);
 
 #endif // __IO_H
