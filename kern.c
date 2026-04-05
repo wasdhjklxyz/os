@@ -104,27 +104,27 @@ static uint8_t syscall_stack[0x1000] __attribute__((aligned(16))); // 4KB
 
 static struct {
   uint32_t _;
-  uint32_t rsp0_1;
   uint32_t rsp0_0;
-  uint32_t rsp1_1;
+  uint32_t rsp0_1;
   uint32_t rsp1_0;
-  uint32_t rsp2_1;
+  uint32_t rsp1_1;
   uint32_t rsp2_0;
+  uint32_t rsp2_1;
   uint64_t __;
-  uint32_t ist1_1;
   uint32_t ist1_0;
-  uint32_t ist2_1;
+  uint32_t ist1_1;
   uint32_t ist2_0;
-  uint32_t ist3_1;
+  uint32_t ist2_1;
   uint32_t ist3_0;
-  uint32_t ist4_1;
+  uint32_t ist3_1;
   uint32_t ist4_0;
-  uint32_t ist5_1;
+  uint32_t ist4_1;
   uint32_t ist5_0;
-  uint32_t ist6_1;
+  uint32_t ist5_1;
   uint32_t ist6_0;
-  uint32_t ist7_1;
+  uint32_t ist6_1;
   uint32_t ist7_0;
+  uint32_t ist7_1;
   uint64_t ___;
   uint16_t ____;
   uint16_t iopb_base; // IOPB ignored if set to >= TSS size
