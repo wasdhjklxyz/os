@@ -397,8 +397,8 @@ void set_gdt_ent_sys(struct gdt_ent_sys *ent, uint64_t base, uint32_t limit,
   ent->base1 = (uint8_t)(base >> 16);
   ent->access_type = access_type;
   ent->flags_limit1 = ((flags & 0xF) << 4) | ((limit >> 16) & 0x00FF);
-  ent->base2 = (uint8_t)(base >> 8);
-  ent->base3 = (uint32_t)(base >> 8);
+  ent->base2 = (uint8_t)(base >> 24);
+  ent->base3 = (uint32_t)(base >> 32);
 }
 
 void setup_gdt(void) {
