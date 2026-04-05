@@ -72,6 +72,7 @@ typedef unsigned int uint32_t;
 typedef unsigned long uint64_t;
 
 extern void syscall_entry(void);
+extern void exception_handler_stub(void);
 
 // #PF -> 0x0E
 // #GP -> 0x0D
@@ -286,14 +287,15 @@ void setup_user_pdte(void) {
   pdt[PDTE_USER] |= PTT_US;
 }
 
-void generic_isr(void) {
-  serial_puts("ISR!!!!!!!!!!!1!\n");
-  while (1)
-    asm volatile("hlt");
+void exception_handler(long vec, long err) {
+  serial_puts("exception: v=");
+  serial_putu64(vec);
+  serial_puts("e=");
+  serial_putu64(err);
 }
 
 void setup_idt(void) {
-  uint64_t isr = (uint64_t)generic_isr;
+  uint64_t isr = (uint64_t)exception_handler_stub;
   for (int i = 0; i < 256; i++) {
     idt[i].offset_1 = isr & 0xFFFF;
     idt[i].offset_2 = (isr >> 16) & 0xFFFF;

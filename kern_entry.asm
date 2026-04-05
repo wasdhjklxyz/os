@@ -160,3 +160,51 @@ syscall_entry:
 
     ;; Return to userspace
     o64 sysret
+
+;;
+;; Stub to avoid C prologue fucking with the stack during an interrupt.
+;;
+global exception_handler_stub
+extern exception_handler
+align  16
+exception_handler_stub:
+    push rax
+    mov  rax, [rsp+8] ; grab error code
+
+    push  rcx
+    push  rdx
+    push  rdi
+    push  rsi
+    push  r8
+    push  r9
+    push  r10
+    push  r11
+    push  rbx
+    push  rbp
+    push  r12
+    push  r13
+    push  r14
+    push  r15
+
+    mov   rdi, 0   ; TODO: Vector
+    mov   rsi, rax
+    call  exception_handler
+
+    pop  r15
+    pop  r14
+    pop  r13
+    pop  r12
+    pop  rbp
+    pop  rbx
+    pop  r11
+    pop  r10
+    pop  r9
+    pop  r8
+    pop  rsi
+    pop  rdi
+    pop  rdx
+    pop  rcx
+
+    pop  rax
+    add  rsp, 8 ; skip error code
+    iretq
