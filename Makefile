@@ -21,6 +21,12 @@ boot.bin: boot.asm kern.bin user.bin
 kern_entry.o: kern_entry.asm
 	nasm -f elf64 $< -o $@
 
+kern_events_stub.o: kern_events.asm
+	nasm -f elf64 $< -o $@
+
+kern_events.o: kern_events.c
+	gcc -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+
 kern.o: kern.c user.bin
 	# FIXME: Dogshit. Why calculate this again
 	$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
@@ -29,7 +35,7 @@ kern.o: kern.c user.bin
 kern_serial.o: kern_serial.c
 	gcc -Werror -Wextra -Wall -Wno-error=comment -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
-kern.elf: kern_entry.o kern_serial.o kern.o
+kern.elf: kern_entry.o kern_serial.o kern_events_stub.o kern_events.o kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
 
 kern.bin: kern.elf

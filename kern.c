@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include "kern_events.h"
 #include "kern_io.h"
 #include "kern_serial.h"
 #include "types.h"
@@ -69,30 +70,10 @@
     tss.field##_1 = (uint32_t)(addr >> 32);                                    \
   } while (0)
 
+#define IDT_LEN 32 // WARN: max 256 - NOTE: first 32 are reserved
+
 extern void syscall_entry(void);
 extern void exception_handler_stub(void);
-
-// #PF -> 0x0E
-// #GP -> 0x0D
-// #NP -> 0x0B
-// #SS -> 0x0C
-// #TS -> 0x0A
-struct idt_gate {
-  uint16_t offset_1;       // offset bits 0..15
-  uint16_t selector;       // a code segment selector in GDT or LDT
-  uint8_t ist;             // bits 0..2 holds Interrupt Stack Table offset
-  uint8_t type_attributes; // gate type, dpl, and p fields
-  uint16_t offset_2;       // offset bits 16..31
-  uint32_t offset_3;       // offset bits 32..63
-  uint32_t zero;           // reserved
-};
-
-struct idtr {
-  uint16_t limit;
-  uint64_t base;
-} __attribute__((packed));
-
-struct idt_gate idt[256] = {0};
 
 static struct {
   uint64_t user_rsp;
@@ -220,21 +201,6 @@ void exception_handler(long vec, long err) {
   serial_putu64(err);
 }
 
-void setup_idt(void) {
-  uint64_t isr = (uint64_t)exception_handler_stub;
-  for (int i = 0; i < 256; i++) {
-    idt[i].offset_1 = isr & 0xFFFF;
-    idt[i].offset_2 = (isr >> 16) & 0xFFFF;
-    idt[i].offset_3 = (isr >> 32);
-    idt[i].selector = KERN_CODE_SEL;
-    idt[i].ist = 0;                // Interrupt stack table not used
-    idt[i].type_attributes = 0x8E; // P=1, DPL=0, 64-bit interrupt gate
-    idt[i].zero = 0;
-  }
-  struct idtr idtr = {.limit = sizeof(idt) - 1, .base = (uint64_t)&idt};
-  asm volatile("lidt %0" : : "m"(idtr));
-}
-
 void enter_user_mode(void) {
   asm volatile("movq %0, %%rax\n\t"
                "movw %%ax, %%ds\n\t"
@@ -358,7 +324,7 @@ void kern_start(void) {
   serial_puts("user load done\n");
   setup_user_pdte();
   serial_puts("user pdte done\n");
-  setup_idt();
+  events_init();
   serial_puts("IDT setup\n");
   enter_user_mode();
   while (1)
