@@ -7,9 +7,16 @@
 #ifndef __TYPES_H
 #define __TYPES_H
 
+#define NULL 0
+
+#define __RESERVED(n) char _reserved_##n[n]
+#define STATIC_ASSERT(cond) _Static_assert(cond, "STATIC_ASSERT: " #cond)
+
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long uint64_t;
+
+typedef uint64_t size_t;
 
 #endif // __TYPES_H
