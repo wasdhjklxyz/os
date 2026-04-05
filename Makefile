@@ -56,15 +56,5 @@ qemu: disk.img
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw -m 1G -no-reboot -nographic \
 		-d cpu_reset,int -D qemu.log
 
-gdb:
-	# FIXME: No fucking clue why these (-ex shit) wont work if in .gdbinit
-	gdb -x .gdbinit \
-		-ex "target remote :1234" \
-		-ex "add-symbol-file kern.elf" \
-		-ex "add-symbol-file user.elf" \
-		-ex "b *0x7C00" \
-		-ex "b kern_start" \
-		-ex "b user.c:main"
-
 clean:
 	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf *.log
