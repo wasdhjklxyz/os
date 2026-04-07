@@ -5,5 +5,5 @@
 *.o
 *.elf
 .clangd
-compile_commands.json
+compile_commands*
 .cache/
