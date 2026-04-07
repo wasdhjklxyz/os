@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#ifndef __DESCRIPTORS_H
+#define __DESCRIPTORS_H
+
 // TODO: Remove magic numbers
 #define GDT_NULL_SEL 0x00
 #define GDT_KERN_CODE_SEL 0x08
@@ -13,3 +16,5 @@
 #define GDT_TSS_SEL 0x28
 
 void descriptors_init(void);
+
+#endif // __DESCRIPTORS_H
