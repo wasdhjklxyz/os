@@ -71,8 +71,6 @@ start:
 ;; Here we attempt to enable A20 line by trying BIOS INT 15h or via port 0x92.
 ;;
 enable_a20_line:
-    push  si
-    mov   si, str_error_a20
     M_A20_CHECK
     jz    .done
     mov   ax, 0x2401 ; BIOS INT 15h enable A20 function
@@ -86,7 +84,6 @@ enable_a20_line:
     jz    .done
     jmp   error
   .done:
-    pop   si
 
 ;;
 ;; Here we use BIOS INT 13h AH=41h to check if disk read extensions are present.
@@ -96,7 +93,6 @@ check_disk_read_exts:
     mov   bx, 0x55AA ; Magic
     int   0x13
     jnc   load_kern
-    mov   si, str_error_bios_isr_13_41
     jmp   error
 
 ;;
@@ -112,7 +108,6 @@ load_kern:
     int   0x13
     jnc   enter_protected_mode
     loop  .loop
-    mov   si, str_error_bios_isr_13_42
     jmp   error
 
 ;;
@@ -134,6 +129,7 @@ enter_protected_mode:
 ;; a string before it is called.
 ;;
 error:
+    mov   si, str_error
     mov   ax, 0x0003 ; AL=3 (80x25 16 color text video mode)
     int   0x10       ; Set the video mode using BIOS INT 10h AH=00h
     cld
@@ -214,12 +210,8 @@ dap:
     dw    0
     dq    1
 
-str_error_bios_isr_13_41:
-    db    0x0D, 0x0A, "Error: BIOS INT 13h AH=41h: Extensions not supported", 0
-str_error_bios_isr_13_42:
-    db    0x0D, 0x0A, "Error: BIOS INT 13h AH=42h: Failed to read drive", 0
-str_error_a20:
-    db    0x0D, 0x0A, "Error: Failed to enable A20 line", 0
+str_error:
+    db    0x0D, 0x0A, "Error in MBR", 0
 
 ;;
 ;; MBR magic number so BIOS marks us bootable.
