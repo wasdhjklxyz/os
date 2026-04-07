@@ -46,7 +46,7 @@ user.elf: $(USER_OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -DKERN_OFFSET=$(KERN_OFFSET) \
 		-DUSER_OFFSET=$(USER_OFFSET) \
-		-DUSER_SECTORS=$(call sector_count,user.bin) \
+		-DUSER_SECTORS=$(USER_SECTORS) \
 		-DUSER_LBA=$(USER_LBA) $< -o $@
 
 %.o: %.asm
