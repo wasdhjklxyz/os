@@ -56,8 +56,3 @@ void kern_main(void) {
   __init();
   __enter_user_mode();
 }
-
-// LEFT OFF:
-// still refactoring now i think i gotta write build script cuz USER_DATA_SEL
-// and that shit got from make file calculated is erroring make sure remove the
-// other files in main dir
