@@ -25,4 +25,5 @@ int main(void) {
   do_page_fault();
 
   (void)result;
+  return 0;
 }
