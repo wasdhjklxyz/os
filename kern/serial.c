@@ -41,6 +41,7 @@ void serial_init(void) {
   io_outb(COM1 + 3, 0x03); // 8 bits, no parity, one stop bit
   io_outb(COM1 + 2, 0xC7); // Enable FIFO, clear them, with 14-byte threshold
   io_outb(COM1 + 4, 0x0B); // IRQs enabled, RTS/DSR set
+  serial_putc('\n');
 }
 
 void serial_putc(char c) {
