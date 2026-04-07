@@ -18,6 +18,9 @@ USER_DATA_SEL  equ 0x18 | 3 ; RPL=3
 USER_CODE_SEL  equ 0x20 | 3 ; RPL=3
 BOOT_CODE_SEL  equ 0x28
 
+MMAP_ENT       equ 0x5000
+MMAP_ENT_START equ 0x5004
+
 ;;
 ;; This macro checks if the A20 line was enabled by attempting to write to two
 ;; addresses that would alias if A20 is disabled.
@@ -106,9 +109,54 @@ load_kern:
     mov   cx, 3
   .loop:
     int   0x13
-    jnc   enter_protected_mode
+    jnc   query_addr_map
     loop  .loop
     jmp   error
+
+;;
+;; Before entering protected mode we have to use another BIOS ISR to query the
+;; system address map of all the installed RAM, and of physical memory ranges
+;; reserved by the BIOS.
+;;
+query_addr_map:
+    mov   eax, 0xE820
+    xor   ebx, ebx              ; EBX must be 0 to start
+    xor   bp, bp                ; Keep entry count in BP
+    mov   edx, 0x0534D4150      ; "SMAP"
+    mov   di, MMAP_ENT_START    ; Prevent getting stuck in INT 15h
+    mov   ecx, 24               ; Ask for 24 bytes
+    mov   [es:di + 20], dword 1 ; Force valid ACPI 3.X entry
+    int   0x15
+    jc    error
+    mov   edx, 0x0534D4150      ; "SMAP" - some BIOSs trash this register
+    cmp   eax, edx              ; EAX set to "SMAP" on success
+    jne   error
+    test  ebx, ebx              ; EBX=0 implies list only 1 entry (worthless)
+    je    error
+    jmp   .jmpin
+  .e820lp:
+    mov   eax, 0xE820           ; EAX gets trashed on every INT 15h call
+    mov   [es:di + 20], dword 1 ; Force valid ACPI 3.X entry
+    mov   ecx, 24               ; Ask for 24 bytes (again)
+    int   0x15
+    jc    .e820f                ; End of list already reached
+    mov   edx, 0x0534D4150      ; "SMAP" - some BIOSs trash this register
+  .jmpin:
+    jcxz  .skipent
+    cmp   cl, 20                ; Got a 24 byte ACPI 3.X response?
+    jbe   .notext
+  .notext:
+    mov   ecx, [es:di + 8]      ; Get lower uint32_t of memory region length
+    or    ecx, [es:di + 12]     ; OR it with upper uint32_t to test for zero
+    jz    .skipent              ; If length uint64_t is 0, skip entry
+    inc   bp                    ; Got good entry, increase count
+    add   di, 24                ; Move to next storage spot
+  .skipent:
+    test  ebx, ebx              ; If EBX resets to 0, list is complete
+    jne   .e820lp
+  .e820f:
+    mov   [es:MMAP_ENT], bp     ; Store entry count
+    clc                         ; There is "jc" on end of list so clear carry
 
 ;;
 ;; Now that we have taken advantage of the BIOS ISRs, we enter protected mode.
