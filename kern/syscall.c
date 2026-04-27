@@ -6,7 +6,6 @@
 
 #include "descriptors.h"
 #include "serial.h"
-#include "types.h"
 
 #define MSR_EFER 0xC0000080
 #define MSR_STAR 0xC0000081

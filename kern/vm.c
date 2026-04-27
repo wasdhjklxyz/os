@@ -5,7 +5,7 @@
  */
 
 #include "vm.h"
-#include "types.h"
+#include "types.h" // IWYU pragma: keep
 
 #ifndef USER_OFFSET
 #define USER_OFFSET 0

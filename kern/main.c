@@ -9,7 +9,6 @@
 #include "io.h"
 #include "serial.h"
 #include "syscall.h"
-#include "types.h"
 #include "vm.h"
 
 #ifndef USER_LBA

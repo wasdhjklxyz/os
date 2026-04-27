@@ -5,7 +5,6 @@
  */
 
 #include "io.h"
-#include "types.h"
 
 #define ATA_IO 0x1F0
 #define PIC_MASTER_DATA 0x21

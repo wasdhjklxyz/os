@@ -8,7 +8,6 @@
 
 #include "io.h"
 #include "serial.h"
-#include "types.h"
 
 #define COM1 0x3F8
 
