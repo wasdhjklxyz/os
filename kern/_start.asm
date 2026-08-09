@@ -37,7 +37,7 @@ BOOT_CODE_SEL  equ 0x28
 ;; registers. Note that CS has already been set due to the far jump performed to
 ;; get here. After this, we far jump to our kernel entry point.
 ;;
-section .text
+section .text.boot
 _start:
     mov   ax, KERN_DATA_SEL
     mov   ds, ax
