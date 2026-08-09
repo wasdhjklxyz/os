@@ -7,6 +7,7 @@
 #include "descriptors.h"
 #include "events.h"
 #include "io.h"
+#include "pm.h"
 #include "serial.h"
 #include "syscall.h"
 #include "vm.h"
@@ -29,6 +30,7 @@ static void __init(void) {
   io_disable_pic();
   syscall_init();
   io_ata_pio_read(USER_LBA, USER_SECTORS, (uint32_t *)USER_OFFSET);
+  (void)pm_init();
   vm_init();
   events_init();
 };
