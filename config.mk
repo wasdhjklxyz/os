@@ -3,7 +3,7 @@ KERN_DIR    := kern
 USER_DIR    := user
 
 # FIXME: Magic fucking numbers
-KERN_OFFSET  := 0x7E00
+KERN_OFFSET  := 0x8000
 USER_OFFSET  := 0x600000
 USER_LBA     := 32
 USER_SECTORS := 1

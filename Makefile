@@ -34,14 +34,15 @@ $(BOOT_DIR)/mbr.bin: $(BOOT_DIR)/mbr.asm kern.bin user.bin
 		-DUSER_LBA=$(USER_LBA) \
 		$< -o $@
 
-kern.elf: $(KERN_OBJ)
-	$(LD) -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
+kern.elf: $(KERN_OBJ) $(KERN_DIR)/kern.ld
+	$(LD) -m elf_x86_64 --defsym KERN_OFFSET=$(KERN_OFFSET) \
+		-T $(KERN_DIR)/kern.ld -z noexecstack -o $@ $(KERN_OBJ)
 
 user.elf: $(USER_OBJ)
 	$(LD) -m elf_x86_64 -Ttext $(USER_OFFSET) -o $@ $^
 
 %.bin: %.elf
-	$(OBJCOPY) -O binary -j .text -j .rodata -j .data $< $@
+	$(OBJCOPY) -O binary -R .bss -R .comment $< $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -DKERN_OFFSET=$(KERN_OFFSET) \
