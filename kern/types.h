@@ -12,7 +12,10 @@
 #define __RESERVED(n) char _reserved_##n[n]
 #define STATIC_ASSERT(cond) _Static_assert(cond, "STATIC_ASSERT: " #cond)
 
-#define PAGE_SIZE 0x1000UL // 4KiB
+#define UINT64_C(c) (c##UL)
+#define UINT64_MAX (UINT64_C(18446744073709551615))
+
+#define PAGE_SIZE (UINT64_C(0x1000)) // 4KiB
 #define PAGE_ALIGN_UP(x) (((x) + (PAGE_SIZE) - 1) & ~((PAGE_SIZE) - 1))
 
 typedef unsigned char uint8_t;

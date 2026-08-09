@@ -9,6 +9,11 @@
 
 #include "types.h"
 
+#define PM_NULL_FRAME ((uint64_t)-1)
+#define PM_FRAME_OF(phys_addr) ((phys_addr) >> 12)
+
 int pm_init(void);
+uint64_t pm_alloc_frame(void);
+void pm_free_frame(uint64_t phys_addr);
 
 #endif // __PM_H
