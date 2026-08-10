@@ -55,6 +55,13 @@ static int _bitmap_test(size_t i) {
   return avail.bitmap.ptr[i / BITMAP_BITS] & (1U << (i % BITMAP_BITS));
 }
 
+static void _zero_frame(uint64_t phys_addr) {
+  // WARN: Valid only while identity mapped */
+  uint64_t *ptr = (uint64_t *)phys_addr;
+  for (size_t i = 0; i < PAGE_SIZE / sizeof(uint64_t); i++)
+    ptr[i] = 0;
+}
+
 int pm_init(void) {
   const uint32_t count = *(const uint32_t *)MMAP_ENT;
   const struct pm_ent *ents = (const struct pm_ent *)MMAP_ENT_START;
@@ -98,7 +105,9 @@ uint64_t pm_alloc_frame(void) {
     if (!_bitmap_test(i)) {
       _bitmap_set(i);
       avail.bitmap.next_hint = i + 1;
-      return avail.region.base + i * PAGE_SIZE;
+      uint64_t addr = avail.region.base + i * PAGE_SIZE;
+      _zero_frame(addr);
+      return addr;
     }
   }
   return PM_NULL_FRAME;
