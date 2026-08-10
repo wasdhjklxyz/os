@@ -6,6 +6,8 @@
 
 [bits 64]
 
+#include <config.h>
+
 global  _start64
 extern  kern_main
 extern  kern_stack

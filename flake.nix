@@ -27,6 +27,7 @@
               gnumake
               gdb
               qemu
+              bear
             ];
           };
         }

@@ -4,12 +4,19 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-include config.mk
-
 CC      := gcc
 LD      := ld
 NASM    := nasm
 OBJCOPY := objcopy
+
+BOOT  := boot
+KERN  := kern
+USER  := user
+BUILD := build
+
+CONFIG    := config
+CONFIG_MK := $(BUILD)/config.mk
+CONFIG_H  := $(BUILD)/include/config.h
 
 CFLAGS := -Werror -Wextra -Wall -Wno-error=comment \
           -fno-stack-protector -ffreestanding -nostdlib \
@@ -17,14 +24,11 @@ CFLAGS := -Werror -Wextra -Wall -Wno-error=comment \
           -mno-sse -mno-sse2 -mno-mmx -mno-80387 -mno-red-zone \
           -m64 -O0 -g -c
 
+CPPFLAGS := -Iinclude -I$(BUILD)/include
+ASPP := $(CC) -E -P -x assembler-with-cpp $(CPPFLAGS) -MMD -MP
+
 LDFLAGS   := -m elf_x86_64 -z noexecstack
 NASMFLAGS := -f elf64
-
-DEFS := -DKERN_OFFSET=$(KERN_OFFSET) \
-        -DKERN_STACK_SIZE=$(KERN_STACK_SIZE) \
-        -DUSER_OFFSET=$(USER_OFFSET) \
-        -DUSER_SECTORS=$(USER_SECTORS) \
-        -DUSER_LBA=$(USER_LBA)
 
 sector_count = $(shell echo $$(( ($$(stat -c%s $(1)) + 511) / 512 )))
 
@@ -45,6 +49,21 @@ MBR_BIN := $(BUILD)/$(BOOT)/mbr.bin
 TARGET  := $(BUILD)/disk.img
 
 .PHONY: all qemu debug clean
+.DEFAULT_GOAL := all
+
+$(CONFIG_MK): $(CONFIG)
+	@mkdir -p $(@D)
+	sed -n 's/^\([A-Z_][A-Z0-9_]*\) *= *\([^ ]*\).*/\1 := \2/p' $< > $@
+
+$(CONFIG_H): $(CONFIG)
+	@mkdir -p $(@D)
+	{ echo '#ifndef __CONFIG_H'; echo '#define __CONFIG_H'; \
+	  sed -n 's/^\([A-Z_][A-Z0-9_]*\) *= *\([^ ]*\).*/#define \1 \2/p' $<; \
+	  echo '#endif'; } > $@
+
+ifeq (,$(filter clean,$(MAKECMDGOALS)))
+include $(CONFIG_MK)
+endif
 
 all: $(TARGET)
 
@@ -55,11 +74,12 @@ $(TARGET): $(MBR_BIN) $(KERN_BIN) $(USER_BIN)
 	dd if=$(KERN_BIN) of=$@ bs=512 seek=1 conv=notrunc 2>/dev/null
 	dd if=$(USER_BIN) of=$@ bs=512 seek=$(USER_LBA) conv=notrunc 2>/dev/null
 
+$(KERN_OBJ) $(USER_OBJ) $(MBR_BIN): $(CONFIG_H)
+
 $(MBR_BIN): $(BOOT)/mbr.asm $(KERN_BIN)
 	@mkdir -p $(@D)
-	$(NASM) -f bin $(DEFS) \
-		-DKERN_SECTORS=$(call sector_count,$(KERN_BIN)) \
-		$< -o $@
+	$(ASPP) -DKERN_SECTORS=$(call sector_count,$(KERN_BIN)) $< -o $(@:.bin=.i)
+	$(NASM) -f bin $(@:.bin=.i) -o $@
 
 $(KERN_ELF): $(KERN_OBJ) $(KERN_LD)
 	@mkdir -p $(@D)
@@ -76,11 +96,12 @@ $(BUILD)/%.bin: $(BUILD)/%.elf
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(DEFS) -MMD -MP $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MP $< -o $@
 
 $(BUILD)/%.o: %.asm
 	@mkdir -p $(@D)
-	$(NASM) $(NASMFLAGS) $(DEFS) $< -o $@
+	$(ASPP) -MT $@ -MF $(@:.o=.d) $< -o $(@:.o=.i)
+	$(NASM) $(NASMFLAGS) $(@:.o=.i) -o $@
 
 qemu: $(TARGET)
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw \
@@ -93,4 +114,4 @@ debug: $(TARGET)
 clean:
 	rm -rf $(BUILD)
 
--include $(KERN_OBJ:.o=.d) $(USER_OBJ:.o=.d)
+-include $(shell find $(BUILD) -name '*.d' 2>/dev/null)

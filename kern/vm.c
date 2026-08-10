@@ -4,12 +4,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "vm.h"
-#include "types.h" // IWYU pragma: keep
+#include <config.h>
 
-#ifndef USER_OFFSET
-#define USER_OFFSET 0
-#endif // USER_OFFSET
+#include "types.h" // IWYU pragma: keep
+#include "vm.h"
 
 #define PDT 0x3000
 #define PTT_US 0x04

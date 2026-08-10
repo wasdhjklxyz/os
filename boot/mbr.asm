@@ -10,6 +10,8 @@
 [bits 16]
 [org  0x7C00]
 
+#include <config.h>
+
 ;; FIXME:
 NULL_SEL       equ 0x00
 KERN_CODE_SEL  equ 0x08

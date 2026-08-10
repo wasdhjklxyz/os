@@ -4,12 +4,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <config.h>
+
 #include "descriptors.h"
 #include "serial.h"
-
-#ifndef KERN_STACK_SIZE
-#define KERN_STACK_SIZE 0
-#endif // KERN_STACK_SIZE
 
 #define MSR_EFER 0xC0000080
 #define MSR_STAR 0xC0000081
