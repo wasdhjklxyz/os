@@ -7,6 +7,10 @@
 #include "descriptors.h"
 #include "serial.h"
 
+#ifndef KERN_STACK_SIZE
+#define KERN_STACK_SIZE 0
+#endif // KERN_STACK_SIZE
+
 #define MSR_EFER 0xC0000080
 #define MSR_STAR 0xC0000081
 #define MSR_LSTAR 0xC0000082
@@ -16,9 +20,7 @@
 #define EFER_SCE (1 << 0)  // Syscall extensions
 #define SFMASK_IF (1 << 9) // Interrupts
 
-#define STACK_SIZE 0x1000 // 4KB
-
-static uint8_t __stack[STACK_SIZE] __attribute__((aligned(16)));
+static uint8_t __stack[KERN_STACK_SIZE] __attribute__((aligned(16)));
 
 static struct {
   uint64_t user_rsp;
@@ -50,7 +52,7 @@ long __syscall_dispatch(long num, long arg1, long arg2, long arg3, long arg4,
 }
 
 void syscall_init(void) {
-  __swapgs_data.kern_rsp = (uint64_t)&__stack[STACK_SIZE];
+  __swapgs_data.kern_rsp = (uint64_t)&__stack[KERN_STACK_SIZE];
   __swapgs_data.user_rsp = 0; // Will be set on syscall entry
 
   __wrmsr(MSR_GS_BASE, (uint64_t)&__swapgs_data);

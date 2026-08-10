@@ -23,7 +23,7 @@ PTT_RW    equ 2
 PTT_US    equ 4
 PTT_PS    equ (1 << 7)
 
-STACK_TOP equ 0x200000 ; 2MB
+STACK_TOP equ 0x80000 ; NOTE: EBDA is here, temporary until _start64
 
 ;; FIXME:
 NULL_SEL       equ 0x00

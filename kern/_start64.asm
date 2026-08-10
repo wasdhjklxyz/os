@@ -8,12 +8,21 @@
 
 global  _start64
 extern  kern_main
-
-STACK_TOP equ 0x200000 ; 2MB
+extern  kern_stack
+extern  __bss_start
+extern  __bss_end
 
 section .text
 _start64:
-    mov   rsp, STACK_TOP
+    ;; Zero .bss while RSP still points at low address bootstrap stack
+    cld
+    mov   rdi, __bss_start
+    mov   rcx, __bss_end
+    sub   rcx, rdi
+    xor   eax, eax
+    rep   stosb
+
+    mov   rsp, kern_stack + KERN_STACK_SIZE
     call  kern_main
   .hang:
     hlt

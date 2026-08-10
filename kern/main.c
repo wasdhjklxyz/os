@@ -21,8 +21,13 @@
 #ifndef USER_OFFSET
 #define USER_OFFSET 0
 #endif // USER_OFFSET
+#ifndef KERN_STACK_SIZE
+#define KERN_STACK_SIZE 0
+#endif // KERN_STACK_SIZE
 
 #define USER_STACK (USER_OFFSET + 0x100000)
+
+uint8_t kern_stack[KERN_STACK_SIZE] __attribute__((aligned(16)));
 
 static void __init(void) {
   serial_init();

@@ -20,6 +20,7 @@ LDFLAGS   := -m elf_x86_64 -z noexecstack
 NASMFLAGS := -f elf64
 
 DEFS := -DKERN_OFFSET=$(KERN_OFFSET) \
+        -DKERN_STACK_SIZE=$(KERN_STACK_SIZE) \
         -DUSER_OFFSET=$(USER_OFFSET) \
         -DUSER_SECTORS=$(USER_SECTORS) \
         -DUSER_LBA=$(USER_LBA)
