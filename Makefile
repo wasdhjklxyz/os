@@ -14,6 +14,7 @@ OBJCOPY := objcopy
 CFLAGS := -Werror -Wextra -Wall -Wno-error=comment \
           -fno-stack-protector -ffreestanding -nostdlib \
           -fno-asynchronous-unwind-tables \
+          -mno-sse -mno-sse2 -mno-mmx -mno-80387 -mno-red-zone \
           -m64 -O0 -g -c
 
 LDFLAGS   := -m elf_x86_64 -z noexecstack
