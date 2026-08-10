@@ -9,9 +9,10 @@
 global  _start
 extern  _start64
 
-PML4T_ADDR equ 0x1000
-PDPT_ADDR  equ 0x2000
-PDT_ADDR   equ 0x3000
+PML4T_ADDR   equ 0x1000
+PDPT_ADDR    equ 0x2000
+PDT_ADDR     equ 0x3000
+PDPT_HI_ADDR equ 0x4000
 
 PTT_SIZE  equ 4096
 PTT_ENTS  equ 512
@@ -37,7 +38,7 @@ BOOT_CODE_SEL  equ 0x28
 ;; registers. Note that CS has already been set due to the far jump performed to
 ;; get here. After this, we far jump to our kernel entry point.
 ;;
-section .text.boot
+section .text.boot exec align=16
 _start:
     mov   ax, KERN_DATA_SEL
     mov   ds, ax
@@ -55,16 +56,24 @@ _start:
     mov   edi, PML4T_ADDR
     mov   cr3, edi
     xor   eax, eax
-    mov   ecx, 0x3000 / 4 ; 12KB (PML4 + PDPT + PDT) / 4 bytes
+    mov   ecx, 0x4000 / 4 ; 16KB (PML4 + PDPT + PDT + PDPT_HI) / 4 bytes
     rep   stosd
 
-    ;; PML4[0] -> PDPT
+    ;; PML4[0] -> PDPT ;; WARN: Marked as user-accessible
     mov   edi, PML4T_ADDR
     mov   dword [edi], PDPT_ADDR | PTT_US | PTT_P | PTT_RW
 
-    ;; PDPT[0] -> PDT
+    ;; PDPT[0] -> PDT ;; WARN: Marked as user-accessible
     mov   edi, PDPT_ADDR
     mov   dword [edi], PDT_ADDR | PTT_US | PTT_P | PTT_RW
+
+    ;; PML4[511] -> PDPT_HI
+    mov   edi, PML4T_ADDR + 511 * 8
+    mov   dword [edi], PDPT_HI_ADDR | PTT_P | PTT_RW
+
+    ;; PDPT_HI[510] -> PDT
+    mov   edi, PDPT_HI_ADDR + 510 * 8
+    mov   dword [edi], PDT_ADDR | PTT_P | PTT_RW
 
     ;; PDT with first 1GB identity mapped with 2MB pages
     mov   edi, PDT_ADDR
@@ -85,4 +94,9 @@ _start:
     or    eax, 0x80000000 ; CR0.PG
     mov   cr0, eax
 
-    jmp   KERN_CODE_SEL:_start64
+    jmp   KERN_CODE_SEL:_trampoline
+
+[bits 64]
+_trampoline:
+    mov   rax, _start64
+    jmp   rax
