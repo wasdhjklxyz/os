@@ -1,10 +1,8 @@
+#include <config.h>
+
 #include "pm.h"
 #include "serial.h"
 #include "types.h"
-
-// FIXME: This is also in boot/mbr.asm (must match) so refactor!
-#define MMAP_ENT 0x5000
-#define MMAP_ENT_START 0x5004
 
 #define BITMAP_BYTES(frames) (((frames) + 7) / 8)
 #define BITMAP_BITS (8 * sizeof(bitmap_word_t))

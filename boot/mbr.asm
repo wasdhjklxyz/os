@@ -20,9 +20,6 @@ USER_DATA_SEL  equ 0x18 | 3 ; RPL=3
 USER_CODE_SEL  equ 0x20 | 3 ; RPL=3
 BOOT_CODE_SEL  equ 0x28
 
-MMAP_ENT       equ 0x5000
-MMAP_ENT_START equ 0x5004
-
 ;;
 ;; This macro checks if the A20 line was enabled by attempting to write to two
 ;; addresses that would alias if A20 is disabled.
