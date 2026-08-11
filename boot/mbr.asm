@@ -150,6 +150,8 @@ query_addr_map:
     jz    .skipent              ; If length uint64_t is 0, skip entry
     inc   bp                    ; Got good entry, increase count
     add   di, 24                ; Move to next storage spot
+    cmp   di, MMAP_ENT_END - 24 ; Room for more?
+    ja    .e820f                ; Out of space, stop early
   .skipent:
     test  ebx, ebx              ; If EBX resets to 0, list is complete
     jne   .e820lp
