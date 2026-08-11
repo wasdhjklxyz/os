@@ -6,22 +6,11 @@
 
 [bits 32]
 
+#include <config.h>
+#include "paging.h"
+
 global  _start
 extern  _start64
-
-PML4T_ADDR   equ 0x1000
-PDPT_ADDR    equ 0x2000
-PDT_ADDR     equ 0x3000
-PDPT_HI_ADDR equ 0x4000
-
-PTT_SIZE  equ 4096
-PTT_ENTS  equ 512
-PTTE_SIZE equ 8
-
-PTT_P     equ 1
-PTT_RW    equ 2
-PTT_US    equ 4
-PTT_PS    equ (1 << 7)
 
 STACK_TOP equ 0x80000 ; NOTE: EBDA is here, temporary until _start64
 
@@ -53,31 +42,31 @@ _start:
     mov   cr4, eax
 
     ;; Clear page translation tables
-    mov   edi, PML4T_ADDR
+    mov   edi, PML4T_PADDR
     mov   cr3, edi
     xor   eax, eax
-    mov   ecx, 0x4000 / 4 ; 16KB (PML4 + PDPT + PDT + PDPT_HI) / 4 bytes
+    mov   ecx, PTT_SIZE
     rep   stosd
 
     ;; PML4[0] -> PDPT ;; WARN: Marked as user-accessible
-    mov   edi, PML4T_ADDR
-    mov   dword [edi], PDPT_ADDR | PTT_US | PTT_P | PTT_RW
+    mov   edi, PML4T_PADDR
+    mov   dword [edi], PDPT_PADDR | PTTE_US | PTTE_P | PTTE_RW
 
     ;; PDPT[0] -> PDT ;; WARN: Marked as user-accessible
-    mov   edi, PDPT_ADDR
-    mov   dword [edi], PDT_ADDR | PTT_US | PTT_P | PTT_RW
+    mov   edi, PDPT_PADDR
+    mov   dword [edi], PDT_PADDR | PTTE_US | PTTE_P | PTTE_RW
 
     ;; PML4[511] -> PDPT_HI
-    mov   edi, PML4T_ADDR + 511 * 8
-    mov   dword [edi], PDPT_HI_ADDR | PTT_P | PTT_RW
+    mov   edi, PML4T_PADDR + PML4_IDX(KERN_VMA) * PTTE_SIZE
+    mov   dword [edi], PDPT_HI_PADDR | PTTE_P | PTTE_RW
 
     ;; PDPT_HI[510] -> PDT
-    mov   edi, PDPT_HI_ADDR + 510 * 8
-    mov   dword [edi], PDT_ADDR | PTT_P | PTT_RW
+    mov   edi, PDPT_HI_PADDR + PDPT_IDX(KERN_VMA) * PTTE_SIZE
+    mov   dword [edi], PDT_PADDR | PTTE_P | PTTE_RW
 
     ;; PDT with first 1GB identity mapped with 2MB pages
-    mov   edi, PDT_ADDR
-    mov   ebx, PTT_P | PTT_RW | PTT_PS
+    mov   edi, PDT_PADDR
+    mov   ebx, PTTE_P | PTTE_RW | PTTE_PS
     mov   ecx, PTT_ENTS ; 512 entries = 1GB
   .identity_loop:
     mov   [edi], ebx
