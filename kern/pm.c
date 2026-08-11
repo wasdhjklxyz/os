@@ -3,6 +3,7 @@
 #include "pm.h"
 #include "serial.h"
 #include "types.h"
+#include "vm.h"
 
 #define BITMAP_BYTES(frames) (((frames) + 7) / 8)
 #define BITMAP_BITS (8 * sizeof(bitmap_word_t))
@@ -16,11 +17,6 @@ typedef enum uint32_t {
   ACPI_NVS,
   BAD_MEMORY,
 } pm_ent_type;
-
-struct pm_region {
-  uint64_t base;
-  uint64_t len;
-} __attribute__((packed));
 
 struct pm_ent {
   struct pm_region region;
@@ -55,12 +51,12 @@ static int _bitmap_test(size_t i) {
 
 static void _zero_frame(uint64_t phys_addr) {
   // WARN: Valid only while identity mapped */
-  uint64_t *ptr = (uint64_t *)phys_addr;
+  uint64_t *ptr = vm_ptov(phys_addr);
   for (size_t i = 0; i < PAGE_SIZE / sizeof(uint64_t); i++)
     ptr[i] = 0;
 }
 
-int pm_init(void) {
+const struct pm_region *pm_init(void) {
   const uint32_t count = *(const uint32_t *)MMAP_ENT;
   const struct pm_ent *ents = (const struct pm_ent *)MMAP_ENT_START;
   struct pm_bitmap *bmp = &avail.bitmap;
@@ -79,7 +75,7 @@ int pm_init(void) {
 
   if (avail.frames == 0) {
     serial_printf("No available memory found!");
-    return -1;
+    return NULL;
   }
 
   bmp->bytes = BITMAP_BYTES(avail.frames);
@@ -94,7 +90,7 @@ int pm_init(void) {
   bmp->next_hint = bmp->region.len / PAGE_SIZE;
   for (size_t i = 0; i < bmp->next_hint; i++)
     _bitmap_set(i);
-  return 0;
+  return &bmp->region;
 }
 
 uint64_t pm_alloc_frame(void) {

@@ -15,10 +15,12 @@
 #define PTTE_RW (1 << 1)
 #define PTTE_US (1 << 2)
 #define PTTE_PS (1 << 7)
+#define PTTE_NX (1UL << 63)
 
 #define PML4_IDX(va) (((va) >> 39) & 0x1FF)
-#define PDPT_IDX(va) (((va) >> 30) & 0x1FF)
-#define PDT_IDX(va) (((va) >> 21) & 0x1FF)
-#define PTT_IDX(va) (((va) >> 12) & 0x1FF)
+#define PDP_IDX(va) (((va) >> 30) & 0x1FF)
+#define PD_IDX(va) (((va) >> 21) & 0x1FF)
+#define PT_IDX(va) (((va) >> 12) & 0x1FF)
+#define PP_OFF(va) ((va) & 0xFFF)
 
 #endif // __PAGING_H

@@ -24,30 +24,35 @@ static void __init(void) {
   io_disable_pic();
   syscall_init();
   io_ata_pio_read(USER_LBA, USER_SECTORS, (uint32_t *)USER_OFFSET);
-  (void)pm_init();
-  vm_init();
+
+  const struct pm_region *physmap = pm_init();
+  if (!physmap)
+    return;
+  if (vm_init(physmap->base, physmap->len) < 0)
+    return;
+
   events_init();
 };
 
-static void __enter_user_mode(void) {
-  asm("movq %0, %%rax\n\t"
-      "movw %%ax, %%ds\n\t"
-      "movw %%ax, %%es\n\t"
-      "movw %%ax, %%fs\n\t"
-      "movw %%ax, %%gs\n\t"
-      "pushq %0\n\t"
-      "pushq %1\n\t"
-      "pushq $0x202\n\t"
-      "pushq %2\n\t"
-      "pushq %3\n\t"
-      "iretq"
-      :
-      : "r"((uint64_t)GDT_USER_DATA_SEL), "r"((uint64_t)USER_STACK),
-        "r"((uint64_t)GDT_USER_CODE_SEL), "r"((uint64_t)USER_OFFSET)
-      : "rax", "memory");
-}
+// static void __enter_user_mode(void) {
+//   asm("movq %0, %%rax\n\t"
+//       "movw %%ax, %%ds\n\t"
+//       "movw %%ax, %%es\n\t"
+//       "movw %%ax, %%fs\n\t"
+//       "movw %%ax, %%gs\n\t"
+//       "pushq %0\n\t"
+//       "pushq %1\n\t"
+//       "pushq $0x202\n\t"
+//       "pushq %2\n\t"
+//       "pushq %3\n\t"
+//       "iretq"
+//       :
+//       : "r"((uint64_t)GDT_USER_DATA_SEL), "r"((uint64_t)USER_STACK),
+//         "r"((uint64_t)GDT_USER_CODE_SEL), "r"((uint64_t)USER_OFFSET)
+//       : "rax", "memory");
+// }
 
 void kern_main(void) {
   __init();
-  __enter_user_mode();
+  // __enter_user_mode();
 }

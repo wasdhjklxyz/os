@@ -42,30 +42,30 @@ _start:
     mov   cr4, eax
 
     ;; Clear page translation tables
-    mov   edi, PML4T_PADDR
+    mov   edi, PML4T_PMA
     mov   cr3, edi
     xor   eax, eax
     mov   ecx, PTT_SIZE
     rep   stosd
 
     ;; PML4[0] -> PDPT ;; WARN: Marked as user-accessible
-    mov   edi, PML4T_PADDR
-    mov   dword [edi], PDPT_PADDR | PTTE_US | PTTE_P | PTTE_RW
+    mov   edi, PML4T_PMA
+    mov   dword [edi], PDPT_PMA | PTTE_US | PTTE_P | PTTE_RW
 
     ;; PDPT[0] -> PDT ;; WARN: Marked as user-accessible
-    mov   edi, PDPT_PADDR
-    mov   dword [edi], PDT_PADDR | PTTE_US | PTTE_P | PTTE_RW
+    mov   edi, PDPT_PMA
+    mov   dword [edi], PDT_PMA | PTTE_US | PTTE_P | PTTE_RW
 
     ;; PML4[511] -> PDPT_HI
-    mov   edi, PML4T_PADDR + PML4_IDX(KERN_VMA) * PTTE_SIZE
-    mov   dword [edi], PDPT_HI_PADDR | PTTE_P | PTTE_RW
+    mov   edi, PML4T_PMA + PML4_IDX(KERN_VMA) * PTTE_SIZE
+    mov   dword [edi], PDPT_HI_PMA | PTTE_P | PTTE_RW
 
     ;; PDPT_HI[510] -> PDT
-    mov   edi, PDPT_HI_PADDR + PDPT_IDX(KERN_VMA) * PTTE_SIZE
-    mov   dword [edi], PDT_PADDR | PTTE_P | PTTE_RW
+    mov   edi, PDPT_HI_PMA + PDP_IDX(KERN_VMA) * PTTE_SIZE
+    mov   dword [edi], PDT_PMA | PTTE_P | PTTE_RW
 
     ;; PDT with first 1GB identity mapped with 2MB pages
-    mov   edi, PDT_PADDR
+    mov   edi, PDT_PMA
     mov   ebx, PTTE_P | PTTE_RW | PTTE_PS
     mov   ecx, PTT_ENTS ; 512 entries = 1GB
   .identity_loop:

@@ -83,7 +83,8 @@ $(MBR_BIN): $(BOOT)/mbr.asm $(KERN_BIN)
 
 $(KERN_ELF): $(KERN_OBJ) $(KERN_LD)
 	@mkdir -p $(@D)
-	$(LD) $(LDFLAGS) --defsym KERN_OFFSET=$(KERN_OFFSET) \
+	$(LD) $(LDFLAGS) \
+		--defsym KERN_OFFSET=$(KERN_OFFSET) --defsym KERN_VMA=$(KERN_VMA) \
 		-T $(KERN_LD) -o $@ $(KERN_OBJ)
 
 # TODO: User linker script
