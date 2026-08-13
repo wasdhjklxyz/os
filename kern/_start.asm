@@ -76,7 +76,7 @@ _start:
 
     mov   ecx, 0xC0000080
     rdmsr
-    or    eax, 0x100 ; LME bit
+    or    eax, 0x900 ; LME+NXE bits
     wrmsr
 
     mov   eax, cr0

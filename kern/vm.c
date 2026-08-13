@@ -47,7 +47,7 @@ static uintptr_t _alloc_table(uintptr_t *ptte) {
   if (pa == PM_NULL_FRAME)
     return 0;
   // WARN: US bit set
-  *ptte = (pa & 0x000FFFFFFFFFF000UL) | PTTE_US | PTTE_RW | PTTE_P;
+  *ptte = (pa & 0x000FFFFFFFFFF000UL) | PTTE_P;
   return pa;
 }
 
@@ -56,16 +56,17 @@ static inline void _load_cr3(uintptr_t pa) {
 }
 
 int vm_init(uintptr_t physmap_pa, size_t physmap_len) {
-  if (vm_map_range(PHYSMAP_BASE, physmap_pa, physmap_len, 0) < 0)
+  if (vm_map_range(PHYSMAP_BASE, physmap_pa, physmap_len, PTTE_NX | PTTE_RW) <
+      0)
     return -1;
   if (vm_map_range((uintptr_t)__text_start, _kern_v2p(__text_start),
                    _seclen(__text_start, __text_end), 0) < 0)
     return -1;
   if (vm_map_range((uintptr_t)__rodata_start, _kern_v2p(__rodata_start),
-                   _seclen(__rodata_start, __rodata_end), 0) < 0)
+                   _seclen(__rodata_start, __rodata_end), PTTE_NX) < 0)
     return -1;
   if (vm_map_range((uintptr_t)__data_start, _kern_v2p(__data_start),
-                   _seclen(__data_start, __bss_end), 0) < 0)
+                   _seclen(__data_start, __bss_end), PTTE_RW | PTTE_NX) < 0)
     return -1;
 
   table_base = PHYSMAP_BASE;
