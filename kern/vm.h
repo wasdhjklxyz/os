@@ -14,7 +14,10 @@
 static inline void *vm_ptov(uint64_t addr) {
   return (void *)(addr + PHYSMAP_BASE);
 }
-static inline uint64_t vm_vtop(void *addr) { return (uint64_t)addr - KERN_VMA; }
+
+static inline uint64_t vm_vtop(void *addr) {
+  return (uint64_t)addr - PHYSMAP_BASE;
+}
 
 int vm_init(uintptr_t physmap_pa, size_t physmap_len);
 int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags);
