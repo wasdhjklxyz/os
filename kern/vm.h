@@ -21,6 +21,6 @@ static inline uint64_t vm_vtop(void *addr) {
 
 int vm_init(uintptr_t physmap_pa, size_t physmap_len);
 int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags);
-int vm_map_range(uintptr_t va, uintptr_t pa, size_t n, uint64_t flags);
+int vm_map_range(uintptr_t va, uintptr_t pa, size_t len, uint64_t flags);
 
 #endif // __VM_H

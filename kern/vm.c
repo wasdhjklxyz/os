@@ -44,7 +44,7 @@ static uintptr_t _alloc_table(uintptr_t *ptte) {
 }
 
 int vm_init(uintptr_t physmap_pa, size_t physmap_len) {
-  if (vm_map_range(PHYSMAP_BASE, physmap_pa, PAGE_ALIGN_UP(physmap_len), 0) < 0)
+  if (vm_map_range(PHYSMAP_BASE, physmap_pa, physmap_len, 0) < 0)
     return -1;
   // TODO...
   return 0;
@@ -69,10 +69,10 @@ int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags) {
   return 0;
 }
 
-int vm_map_range(uint64_t va, uint64_t pa, size_t n, uint64_t flags) {
-  if (n % PAGE_SIZE != 0)
+int vm_map_range(uint64_t va, uint64_t pa, size_t len, uint64_t flags) {
+  if ((va | pa | len) & (PAGE_SIZE - 1))
     return -1;
-  for (size_t i = 0; i < n / PAGE_SIZE; i++)
+  for (size_t i = 0; i < len / PAGE_SIZE; i++)
     if (vm_map(va + i * PAGE_SIZE, pa + i * PAGE_SIZE, flags) < 0)
       return -1;
   return 0;

@@ -82,7 +82,7 @@ const struct pm_region *pm_init(void) {
   bmp->next_hint = bmp->region.len / PAGE_SIZE;
   for (size_t i = 0; i < bmp->next_hint; i++)
     _bitmap_set(i);
-  return &bmp->region;
+  return &avail.region;
 }
 
 uint64_t pm_alloc_frame(void) {
