@@ -106,7 +106,7 @@ $(BUILD)/%.o: %.asm
 
 qemu: $(TARGET)
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw \
-		-m 1G -no-reboot -nographic \
+		-m $(QEMU_MEM) -no-reboot -nographic \
 		-d cpu_reset,int -D $(BUILD)/qemu.log
 
 debug: $(TARGET)
