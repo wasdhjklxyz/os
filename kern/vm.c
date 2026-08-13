@@ -13,10 +13,11 @@
 
 #define PTTE_ADDR(ptte) ((ptte) & 0x000FFFFFFFFFF000UL)
 
-// extern char __kern_lma[], __kern_end[];
-// extern char __text_start[], __text_end[];
-// extern char __rodata_start[], __rodata_end[];
-// extern char __data_start[], __bss_end[];
+extern char __text_start[], __text_end[];
+extern char __rodata_start[], __rodata_end[];
+extern char __data_start[], __bss_end[];
+static uintptr_t secv2p(char *va) { return (uintptr_t)va - KERN_VMA; }
+static uintptr_t seclen(char *a, char *b) { return (size_t)(b - a); }
 
 // static struct vm_free_node {
 //   struct vm_free_node *prev;
@@ -46,7 +47,15 @@ static uintptr_t _alloc_table(uintptr_t *ptte) {
 int vm_init(uintptr_t physmap_pa, size_t physmap_len) {
   if (vm_map_range(PHYSMAP_BASE, physmap_pa, physmap_len, 0) < 0)
     return -1;
-  // TODO...
+  if (vm_map_range((uintptr_t)__text_start, secv2p(__text_start),
+                   seclen(__text_start, __text_end), 0) < 0)
+    return -1;
+  if (vm_map_range((uintptr_t)__rodata_start, secv2p(__rodata_start),
+                   seclen(__rodata_start, __rodata_end), 0) < 0)
+    return -1;
+  if (vm_map_range((uintptr_t)__data_start, secv2p(__data_start),
+                   seclen(__data_start, __bss_end), 0) < 0)
+    return -1;
   return 0;
 }
 
