@@ -3,6 +3,7 @@
 #include "pm.h"
 #include "serial.h"
 #include "types.h"
+#include "vm.h"
 
 #define BITMAP_BYTES(frames) (((frames) + 7) / 8)
 #define BITMAP_BITS (8 * sizeof(bitmap_word_t))
@@ -46,6 +47,11 @@ static void _bitmap_set(size_t i) {
 
 static int _bitmap_test(size_t i) {
   return avail.bitmap.ptr[i / BITMAP_BITS] & (1U << (i % BITMAP_BITS));
+}
+
+static void _zero_frame(uintptr_t pa) {
+  for (size_t i = 0; i < PAGE_SIZE / sizeof(uintptr_t); i++)
+    ((uintptr_t *)vm_ptov(pa))[i] = 0;
 }
 
 const struct pm_region *pm_init(void) {
@@ -104,6 +110,8 @@ void pm_free_frame(uint64_t phys_addr) {
   size_t i = (phys_addr - avail.region.base) / PAGE_SIZE;
   if (i >= avail.frames)
     return;
-  if (_bitmap_test(i))
+  if (_bitmap_test(i)) {
+    _zero_frame(phys_addr);
     _bitmap_clear(i);
+  }
 }
