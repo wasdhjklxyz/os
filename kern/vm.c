@@ -16,8 +16,9 @@
 extern char __text_start[], __text_end[];
 extern char __rodata_start[], __rodata_end[];
 extern char __data_start[], __bss_end[];
-static uintptr_t secv2p(char *va) { return (uintptr_t)va - KERN_VMA; }
-static uintptr_t seclen(char *a, char *b) { return (size_t)(b - a); }
+
+static uintptr_t _kern_v2p(char *va) { return (uintptr_t)va - KERN_VMA; }
+static uintptr_t _seclen(char *a, char *b) { return (size_t)(b - a); }
 
 // static struct vm_free_node {
 //   struct vm_free_node *prev;
@@ -30,6 +31,12 @@ static uintptr_t seclen(char *a, char *b) { return (size_t)(b - a); }
 //     .start = KERN_HEAP_BASE,
 //     .size = KERN_HEAP_LEN,
 // };
+
+static uintptr_t table_base = 0;
+
+static uintptr_t *_table_ptr(uintptr_t pa) {
+  return (uintptr_t *)(pa + table_base);
+}
 
 static uintptr_t pml4[PTT_ENTS] __attribute__((aligned(PAGE_SIZE)));
 
@@ -44,18 +51,25 @@ static uintptr_t _alloc_table(uintptr_t *ptte) {
   return pa;
 }
 
+static inline void _load_cr3(uintptr_t pa) {
+  asm volatile("mov %0, %%cr3" : : "r"(pa) : "memory");
+}
+
 int vm_init(uintptr_t physmap_pa, size_t physmap_len) {
   if (vm_map_range(PHYSMAP_BASE, physmap_pa, physmap_len, 0) < 0)
     return -1;
-  if (vm_map_range((uintptr_t)__text_start, secv2p(__text_start),
-                   seclen(__text_start, __text_end), 0) < 0)
+  if (vm_map_range((uintptr_t)__text_start, _kern_v2p(__text_start),
+                   _seclen(__text_start, __text_end), 0) < 0)
     return -1;
-  if (vm_map_range((uintptr_t)__rodata_start, secv2p(__rodata_start),
-                   seclen(__rodata_start, __rodata_end), 0) < 0)
+  if (vm_map_range((uintptr_t)__rodata_start, _kern_v2p(__rodata_start),
+                   _seclen(__rodata_start, __rodata_end), 0) < 0)
     return -1;
-  if (vm_map_range((uintptr_t)__data_start, secv2p(__data_start),
-                   seclen(__data_start, __bss_end), 0) < 0)
+  if (vm_map_range((uintptr_t)__data_start, _kern_v2p(__data_start),
+                   _seclen(__data_start, __bss_end), 0) < 0)
     return -1;
+
+  table_base = PHYSMAP_BASE;
+  _load_cr3(_kern_v2p((char *)pml4));
   return 0;
 }
 
@@ -64,15 +78,15 @@ int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags) {
   if (!(*pml4e & PTTE_P) && !_alloc_table(pml4e))
     return -1;
 
-  uintptr_t *pdpe = &((uintptr_t *)PTTE_ADDR(*pml4e))[PDP_IDX(va)];
+  uintptr_t *pdpe = &(_table_ptr(PTTE_ADDR(*pml4e)))[PDP_IDX(va)];
   if (!(*pdpe & PTTE_P) && !_alloc_table(pdpe))
     return -1;
 
-  uintptr_t *pde = &((uintptr_t *)PTTE_ADDR(*pdpe))[PD_IDX(va)];
+  uintptr_t *pde = &(_table_ptr(PTTE_ADDR(*pdpe)))[PD_IDX(va)];
   if (!(*pde & PTTE_P) && !_alloc_table(pde))
     return -1;
 
-  uintptr_t *pte = &((uintptr_t *)PTTE_ADDR(*pde))[PT_IDX(va)];
+  uintptr_t *pte = &(_table_ptr(PTTE_ADDR(*pde)))[PT_IDX(va)];
   if (!(*pte & PTTE_P))
     *pte = PTTE_ADDR(pa) | flags | PTTE_P;
   return 0;
