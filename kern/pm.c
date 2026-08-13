@@ -3,7 +3,6 @@
 #include "pm.h"
 #include "serial.h"
 #include "types.h"
-#include "vm.h"
 
 #define BITMAP_BYTES(frames) (((frames) + 7) / 8)
 #define BITMAP_BITS (8 * sizeof(bitmap_word_t))
@@ -47,13 +46,6 @@ static void _bitmap_set(size_t i) {
 
 static int _bitmap_test(size_t i) {
   return avail.bitmap.ptr[i / BITMAP_BITS] & (1U << (i % BITMAP_BITS));
-}
-
-static void _zero_frame(uint64_t phys_addr) {
-  // WARN: Valid only while identity mapped */
-  uint64_t *ptr = vm_ptov(phys_addr);
-  for (size_t i = 0; i < PAGE_SIZE / sizeof(uint64_t); i++)
-    ptr[i] = 0;
 }
 
 const struct pm_region *pm_init(void) {
@@ -100,7 +92,6 @@ uint64_t pm_alloc_frame(void) {
       _bitmap_set(i);
       avail.bitmap.next_hint = i + 1;
       uint64_t addr = avail.region.base + i * PAGE_SIZE;
-      _zero_frame(addr);
       return addr;
     }
   }
