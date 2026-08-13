@@ -65,7 +65,7 @@ int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags) {
 
   uintptr_t *pte = &((uintptr_t *)PTTE_ADDR(*pde))[PT_IDX(va)];
   if (!(*pte & PTTE_P))
-    *pte = (pa & 0xFFFFFFFFFF000UL) | flags | PTTE_P;
+    *pte = PTTE_ADDR(pa) | flags | PTTE_P;
   return 0;
 }
 
