@@ -46,7 +46,6 @@ static uintptr_t _alloc_table(uintptr_t *ptte) {
   uintptr_t pa = pm_alloc_frame();
   if (pa == PM_NULL_FRAME)
     return 0;
-  // WARN: US bit set
   *ptte = (pa & 0x000FFFFFFFFFF000UL) | PTTE_P;
   return pa;
 }

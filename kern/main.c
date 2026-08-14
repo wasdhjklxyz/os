@@ -28,7 +28,7 @@ static void __init(void) {
   const struct pm_region *physmap = pm_init();
   if (!physmap)
     return;
-  if (vm_init(physmap->base, physmap->len) < 0)
+  if (vm_init(0, physmap->len) < 0)
     return;
 
   events_init();
