@@ -74,10 +74,14 @@ all: $(TARGET)
 
 $(TARGET): $(MBR_BIN) $(KERN_BIN) $(USER_BIN)
 	@mkdir -p $(@D)
-	dd if=/dev/zero of=$@ bs=512 count=$(DISK_SECTORS) 2>/dev/null
-	dd if=$(MBR_BIN)  of=$@ bs=512 count=1 conv=notrunc 2>/dev/null
-	dd if=$(KERN_BIN) of=$@ bs=512 seek=1 conv=notrunc 2>/dev/null
-	dd if=$(USER_BIN) of=$@ bs=512 seek=$(USER_LBA) conv=notrunc 2>/dev/null
+	dd if=/dev/zero of=$@ bs=$(DISK_BLOCK_SIZE) \
+		count=$(DISK_SECTORS) 2>/dev/null
+	dd if=$(MBR_BIN)  of=$@ bs=$(DISK_BLOCK_SIZE) \
+		count=1 conv=notrunc 2>/dev/null
+	dd if=$(KERN_BIN) of=$@ bs=$(DISK_BLOCK_SIZE) \
+		seek=1 conv=notrunc 2>/dev/null
+	dd if=$(USER_BIN) of=$@ bs=$(DISK_BLOCK_SIZE) \
+		seek=$(USER_LBA) conv=notrunc 2>/dev/null
 
 $(KERN_OBJ) $(USER_OBJ) $(MBR_BIN): $(CONFIG_H)
 
