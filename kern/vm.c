@@ -40,13 +40,13 @@ static uintptr_t *_table_ptr(uintptr_t pa) {
 
 static uintptr_t pml4[PTT_ENTS] __attribute__((aligned(PAGE_SIZE)));
 
-static uintptr_t _alloc_table(uintptr_t *ptte) {
+static uintptr_t _alloc_table(uintptr_t *ptte, uint64_t flags) {
   if (!ptte || *ptte & PTTE_P)
     return 0;
   uintptr_t pa = pm_alloc_frame();
   if (pa == PM_NULL_FRAME)
     return 0;
-  *ptte = (pa & 0x000FFFFFFFFFF000UL) | PTTE_P;
+  *ptte = (pa & 0x000FFFFFFFFFF000UL) | PTTE_P | flags;
   return pa;
 }
 
@@ -74,16 +74,19 @@ int vm_init(uintptr_t physmap_pa, size_t physmap_len) {
 }
 
 int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags) {
+  /* WARN: If table already alloced it wont get the new flags.
+           Passing flags to alloc table was only for allocating user stuff.
+           This means the caller needs to be aware of tables which is BAD */
   uintptr_t *pml4e = &pml4[PML4_IDX(va)];
-  if (!(*pml4e & PTTE_P) && !_alloc_table(pml4e))
+  if (!(*pml4e & PTTE_P) && !_alloc_table(pml4e, flags))
     return -1;
 
   uintptr_t *pdpe = &(_table_ptr(PTTE_ADDR(*pml4e)))[PDP_IDX(va)];
-  if (!(*pdpe & PTTE_P) && !_alloc_table(pdpe))
+  if (!(*pdpe & PTTE_P) && !_alloc_table(pdpe, flags))
     return -1;
 
   uintptr_t *pde = &(_table_ptr(PTTE_ADDR(*pdpe)))[PD_IDX(va)];
-  if (!(*pde & PTTE_P) && !_alloc_table(pde))
+  if (!(*pde & PTTE_P) && !_alloc_table(pde, flags))
     return -1;
 
   uintptr_t *pte = &(_table_ptr(PTTE_ADDR(*pde)))[PT_IDX(va)];
