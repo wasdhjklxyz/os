@@ -23,7 +23,7 @@ CFLAGS := -Werror -Wextra -Wall -Wno-error=comment \
           -fno-stack-protector -ffreestanding -nostdlib \
           -fno-asynchronous-unwind-tables \
           -mno-sse -mno-sse2 -mno-mmx -mno-80387 -mno-red-zone \
-          -m64 -O0 -g -c
+          -m64 -O0 -g3 -c
 
 CPPFLAGS := -Iinclude -I$(BUILD)/include
 ASPP := $(CC) -E -P -x assembler-with-cpp $(CPPFLAGS) -MMD -MP
