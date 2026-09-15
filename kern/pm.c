@@ -115,3 +115,6 @@ void pm_free_frame(uint64_t phys_addr) {
     _bitmap_clear(i);
   }
 }
+
+/* FIXME: Refactor. This function is weird and a footgun */
+void pm_update_ptr(void) { avail.bitmap.ptr += PHYSMAP_BASE; }

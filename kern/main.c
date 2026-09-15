@@ -30,6 +30,7 @@ static void __init(void) {
     return;
   if (vm_init(0, physmap->len) < 0)
     return;
+  pm_update_ptr(); // FIXME: See fn definition
 
   events_init();
 };

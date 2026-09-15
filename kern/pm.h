@@ -22,5 +22,6 @@ struct pm_region {
 const struct pm_region *pm_init(void);
 uint64_t pm_alloc_frame(void);
 void pm_free_frame(uint64_t phys_addr);
+void pm_update_ptr(void);
 
 #endif // __PM_H
