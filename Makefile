@@ -14,9 +14,10 @@ KERN  := kern
 USER  := user
 BUILD := build
 
-CONFIG    := config
-CONFIG_MK := $(BUILD)/config.mk
-CONFIG_H  := $(BUILD)/include/config.h
+CONFIG     := config
+CONFIG_MK  := $(BUILD)/config.mk
+CONFIG_H   := $(BUILD)/include/config.h
+CONFIG_GDB := $(BUILD)/config.gdb
 
 CFLAGS := -Werror -Wextra -Wall -Wno-error=comment \
           -fno-stack-protector -ffreestanding -nostdlib \
@@ -60,6 +61,10 @@ $(CONFIG_H): $(CONFIG)
 	{ echo '#ifndef __CONFIG_H'; echo '#define __CONFIG_H'; \
 	  sed -n 's/^\([A-Z_][A-Z0-9_]*\) *= *\([^ ]*\).*/#define \1 \2/p' $<; \
 	  echo '#endif'; } > $@
+
+$(CONFIG_GDB): $(CONFIG)
+	@mkdir -p $(@D)
+	sed -n 's/^\([A-Z_][A-Z0-9_]*\) *= *\([^ ]*\).*/set $$\1 = \2/p' $< > $@
 
 ifeq (,$(filter clean,$(MAKECMDGOALS)))
 include $(CONFIG_MK)
@@ -109,7 +114,7 @@ qemu: $(TARGET)
 		-m $(QEMU_MEM)M -no-reboot -nographic \
 		-d cpu_reset,int -D $(BUILD)/qemu.log
 
-debug: $(TARGET)
+debug: $(TARGET) $(CONFIG_GDB)
 	gdb -x debug.gdb
 
 clean:
