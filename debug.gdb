@@ -7,3 +7,4 @@ add-symbol-file build/kern/kern.elf
 add-symbol-file build/user/user.elf
 
 source build/config.gdb
+source pt.gdb.py
