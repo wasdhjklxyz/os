@@ -7,7 +7,7 @@
 #ifndef PM_H
 #define PM_H
 
-#include "types.h"
+#include <stdint.h>
 
 #define PM_NULL_FRAME ((uint64_t)-1)
 #define PM_FRAME_OF(phys_addr) ((phys_addr) >> 12)

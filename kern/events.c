@@ -4,8 +4,11 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "serial.h"
-#include "types.h"
+#include "util.h"
 
 #define IDT_SIZE_MIN 32
 #define IDT_SIZE_MAX 256

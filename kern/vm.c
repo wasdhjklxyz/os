@@ -4,11 +4,13 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stdint.h>
+
 #include <config.h>
 
 #include "paging.h"
 #include "pm.h"
-#include "types.h" // IWYU pragma: keep
+#include "util.h"
 #include "vm.h"
 
 #define PTTE_ADDR(ptte) ((ptte) & 0x000FFFFFFFFFF000UL)

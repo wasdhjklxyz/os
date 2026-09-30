@@ -5,6 +5,7 @@
  */
 
 #include <stdarg.h>
+#include <stddef.h>
 
 #include "io.h"
 #include "serial.h"

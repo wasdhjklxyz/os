@@ -7,8 +7,6 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
-#include "types.h"
-
 void events_init(void);
 
-#endif // __EVENTS_H
+#endif // EVENTS_H

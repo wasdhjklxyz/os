@@ -4,8 +4,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stdint.h>
+
 #include "descriptors.h"
-#include "types.h"
+#include "util.h"
 
 #define TSS_STACK_SIZE 0x1000 // 4KB
 static uint8_t tss_rsp0_stack[TSS_STACK_SIZE] __attribute__((aligned(16)));

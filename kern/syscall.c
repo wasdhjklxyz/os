@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stdint.h>
+
 #include <config.h>
 
 #include "descriptors.h"

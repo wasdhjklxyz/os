@@ -13,6 +13,7 @@
 #include "pm.h"
 #include "serial.h"
 #include "syscall.h"
+#include "util.h"
 #include "vm.h"
 
 uint8_t kern_stack[KERN_STACK_SIZE] __attribute__((aligned(16)));

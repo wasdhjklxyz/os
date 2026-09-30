@@ -7,9 +7,10 @@
 #ifndef VM_H
 #define VM_H
 
-#include <config.h>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "types.h" // IWYU pragma: keep
+#include <config.h>
 
 static inline void *vm_ptov(uint64_t addr) {
   return (void *)(addr + PHYSMAP_BASE);

@@ -4,11 +4,13 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stdint.h>
+
 #include <config.h>
 
 #include "pm.h"
 #include "serial.h"
-#include "types.h"
+#include "util.h"
 #include "vm.h"
 
 #define BITMAP_BYTES(frames) (((frames) + 7) / 8)
