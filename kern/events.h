@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __EVENTS_H
-#define __EVENTS_H
+#ifndef EVENTS_H
+#define EVENTS_H
 
 #include "types.h"
 

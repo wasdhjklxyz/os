@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __PAGING_H
-#define __PAGING_H
+#ifndef PAGING_H
+#define PAGING_H
 
 #define PTT_SIZE 4096
 #define PTT_ENTS 512
@@ -23,4 +23,4 @@
 #define PT_IDX(va) (((va) >> 12) & 0x1FF)
 #define PP_OFF(va) ((va) & 0xFFF)
 
-#endif // __PAGING_H
+#endif // PAGING_H

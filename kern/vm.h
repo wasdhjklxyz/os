@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __VM_H
-#define __VM_H
+#ifndef VM_H
+#define VM_H
 
 #include <config.h>
 
@@ -23,4 +23,4 @@ int vm_init(uintptr_t physmap_pa, size_t physmap_len);
 int vm_map(uintptr_t va, uintptr_t pa, uint64_t flags);
 int vm_map_range(uintptr_t va, uintptr_t pa, size_t len, uint64_t flags);
 
-#endif // __VM_H
+#endif // VM_H

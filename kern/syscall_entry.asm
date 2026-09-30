@@ -6,8 +6,8 @@
 
 [bits 64]
 
-global __syscall_entry
-extern __syscall_dispatch
+global syscall_entry
+extern syscall_dispatch
 
 ;;
 ;; SYSCALL entry point - called when userspace executes SYSCALL instruction.
@@ -21,7 +21,7 @@ extern __syscall_dispatch
 ;;  CPL = 0
 ;;
 align  16
-__syscall_entry:
+syscall_entry:
     swapgs            ; Swap to kern GS and switch to kern stack
     mov   [gs:0], rsp ; Save user RSP
     mov   rsp, [gs:8] ; Load kernel RSP
@@ -46,7 +46,7 @@ __syscall_entry:
     mov   rdi, rax
     mov   rcx, r10
     push  rax
-    call  __syscall_dispatch
+    call  syscall_dispatch
     add   rsp, 8 ; Pop saved RAX (we have new return value)
 
     ;; Restore syscall arguments, callee-saved registers, and user context

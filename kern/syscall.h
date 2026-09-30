@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __SYSCALL_H
-#define __SYSCALL_H
+#ifndef SYSCALL_H
+#define SYSCALL_H
 
 /**
  * When SYSCALL executes:
@@ -27,4 +27,4 @@
  */
 void syscall_init(void);
 
-#endif // __SYSCALL_H
+#endif // SYSCALL_H

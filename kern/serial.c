@@ -16,7 +16,7 @@
 #define U32_HEX_STR_LEN 11
 #define U64_HEX_STR_LEN 19
 
-static void __putx(uint64_t val, size_t len) {
+static void putx(uint64_t val, size_t len) {
   int i;
   uint8_t n;
   char str[len];
@@ -66,16 +66,16 @@ void serial_printf(const char *fmt, ...) {
     if (*fmt == '%' && *(++fmt)) {
       switch (*fmt++) {
       case 'b':
-        __putx(va_arg(ap, int), U8_HEX_STR_LEN);
+        putx(va_arg(ap, int), U8_HEX_STR_LEN);
         continue;
       case 'w':
-        __putx(va_arg(ap, int), U16_HEX_STR_LEN);
+        putx(va_arg(ap, int), U16_HEX_STR_LEN);
         continue;
       case 'd':
-        __putx(va_arg(ap, uint32_t), U32_HEX_STR_LEN);
+        putx(va_arg(ap, uint32_t), U32_HEX_STR_LEN);
         continue;
       case 'q':
-        __putx(va_arg(ap, uint64_t), U64_HEX_STR_LEN);
+        putx(va_arg(ap, uint64_t), U64_HEX_STR_LEN);
         continue;
       }
     }

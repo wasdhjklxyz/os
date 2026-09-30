@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __IO_H
-#define __IO_H
+#ifndef IO_H
+#define IO_H
 
 #include "types.h"
 
@@ -28,4 +28,4 @@ static inline uint32_t io_inl(uint16_t port) {
 void io_disable_pic(void);
 void io_ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf);
 
-#endif // __IO_H
+#endif // IO_H

@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __TYPES_H
-#define __TYPES_H
+#ifndef TYPES_H
+#define TYPES_H
 
 #define NULL 0
 
-#define __RESERVED(n) char _reserved_##n[n]
+#define RESERVED(n) char _reserved_##n[n]
 #define STATIC_ASSERT(cond) _Static_assert(cond, "STATIC_ASSERT: " #cond)
 
 #define UINT64_C(c) (c##UL)
@@ -26,4 +26,4 @@ typedef unsigned long uint64_t;
 typedef unsigned long uintptr_t;
 typedef unsigned long size_t;
 
-#endif // __TYPES_H
+#endif // TYPES_H

@@ -58,7 +58,7 @@ $(CONFIG_MK): $(CONFIG)
 
 $(CONFIG_H): $(CONFIG)
 	@mkdir -p $(@D)
-	{ echo '#ifndef __CONFIG_H'; echo '#define __CONFIG_H'; \
+	{ echo '#ifndef _CONFIG_H'; echo '#define _CONFIG_H'; \
 	  sed -n 's/^\([A-Z_][A-Z0-9_]*\) *= *\([^ ]*\).*/#define \1 \2/p' $<; \
 	  echo '#endif'; } > $@
 

@@ -17,7 +17,7 @@
 
 uint8_t kern_stack[KERN_STACK_SIZE] __attribute__((aligned(16)));
 
-static void __init(void) {
+static void init(void) {
   serial_init();
   descriptors_init();
   io_disable_pic();
@@ -33,7 +33,7 @@ static void __init(void) {
   events_init();
 };
 
-static int __enter_user_mode(void) {
+static int enter_user_mode(void) {
   const uintptr_t va = 0;
 
   // FIXME: The flags => executable AND read/write. Need I say more?
@@ -63,6 +63,6 @@ static int __enter_user_mode(void) {
 }
 
 void kern_main(void) {
-  __init();
-  __enter_user_mode();
+  init();
+  enter_user_mode();
 }

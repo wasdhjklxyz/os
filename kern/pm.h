@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#ifndef __PM_H
-#define __PM_H
+#ifndef PM_H
+#define PM_H
 
 #include "types.h"
 
@@ -24,4 +24,4 @@ uint64_t pm_alloc_frame(void);
 void pm_free_frame(uint64_t phys_addr);
 void pm_update_ptr(void);
 
-#endif // __PM_H
+#endif // PM_H
