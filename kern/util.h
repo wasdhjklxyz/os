@@ -11,8 +11,6 @@
 
 #include <stdint.h>
 
-#define NULL 0
-
 #define RESERVED(n) char _reserved_##n[n]
 #define STATIC_ASSERT(cond) _Static_assert(cond, "STATIC_ASSERT: " #cond)
 
