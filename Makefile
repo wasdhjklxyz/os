@@ -119,7 +119,7 @@ qemu: $(TARGET)
 		-d cpu_reset,int -D $(BUILD)/qemu.log
 
 debug: $(TARGET) $(CONFIG_GDB)
-	gdb -x debug.gdb
+	gdb -x scripts/gdb/debug.gdb
 
 clean:
 	rm -rf $(BUILD)
