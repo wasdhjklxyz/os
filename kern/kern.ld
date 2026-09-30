@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2026, uiop <uiop@wasdhjkl.xyz>
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 ENTRY(_start)
 SECTIONS {
   . = KERN_OFFSET;
