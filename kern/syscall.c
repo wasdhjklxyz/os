@@ -9,7 +9,7 @@
 #include <config.h>
 
 #include "descriptors.h"
-#include "serial.h"
+#include "dev/serial.h"
 
 #define MSR_EFER 0xC0000080
 #define MSR_STAR 0xC0000081

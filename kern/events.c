@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "serial.h"
+#include "dev/serial.h"
 #include "util.h"
 
 #define IDT_SIZE_MIN 32

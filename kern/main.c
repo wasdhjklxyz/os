@@ -7,14 +7,14 @@
 #include <config.h>
 
 #include "descriptors.h"
+#include "dev/io.h"
+#include "dev/serial.h"
 #include "events.h"
-#include "io.h"
-#include "paging.h"
-#include "pm.h"
-#include "serial.h"
+#include "mm/paging.h"
+#include "mm/pm.h"
+#include "mm/vm.h"
 #include "syscall.h"
 #include "util.h"
-#include "vm.h"
 
 uint8_t kern_stack[KERN_STACK_SIZE] __attribute__((aligned(16)));
 

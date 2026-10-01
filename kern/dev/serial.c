@@ -7,8 +7,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include "io.h"
-#include "serial.h"
+#include "dev/io.h"
+#include "dev/serial.h"
 
 #define COM1 0x3F8
 

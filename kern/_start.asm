@@ -7,7 +7,7 @@
 [bits 32]
 
 #include <config.h>
-#include "paging.h"
+#include "mm/paging.h"
 
 global  _start
 extern  _start64

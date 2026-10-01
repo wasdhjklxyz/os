@@ -8,10 +8,10 @@
 
 #include <config.h>
 
-#include "pm.h"
-#include "serial.h"
+#include "dev/serial.h"
+#include "mm/pm.h"
+#include "mm/vm.h"
 #include "util.h"
-#include "vm.h"
 
 #define BITMAP_BYTES(frames) (((frames) + 7) / 8)
 #define BITMAP_BITS (8 * sizeof(bitmap_word_t))

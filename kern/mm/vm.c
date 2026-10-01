@@ -8,10 +8,10 @@
 
 #include <config.h>
 
-#include "paging.h"
-#include "pm.h"
+#include "mm/paging.h"
+#include "mm/pm.h"
+#include "mm/vm.h"
 #include "util.h"
-#include "vm.h"
 
 #define PTTE_ADDR(ptte) ((ptte) & 0x000FFFFFFFFFF000UL)
 

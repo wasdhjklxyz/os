@@ -26,15 +26,15 @@ CFLAGS := -Werror -Wextra -Wall -Wno-error=comment \
           -m64 -O0 -g3 -c
 
 CPPFLAGS := -Iinclude -I$(BUILD)/include
-ASPP := $(CC) -E -P -x assembler-with-cpp $(CPPFLAGS) -MMD -MP
+ASPP = $(CC) -E -P -x assembler-with-cpp $(CPPFLAGS) -MMD -MP
 
 LDFLAGS   := -m elf_x86_64 -z noexecstack
 NASMFLAGS := -f elf64
 
 sector_count = $(shell echo $$(( ($$(stat -c%s $(1)) + 511) / 512 )))
 
-KERN_C   := $(wildcard $(KERN)/*.c)
-KERN_ASM := $(wildcard $(KERN)/*.asm)
+KERN_C   := $(shell find $(KERN) -name '*.c')
+KERN_ASM := $(shell find $(KERN) -name '*.asm')
 KERN_LD  := $(KERN)/$(KERN).ld
 KERN_OBJ := $(patsubst %,$(BUILD)/%.o,$(basename $(KERN_ASM) $(KERN_C)))
 KERN_ELF := $(BUILD)/$(KERN)/$(KERN).elf
@@ -84,6 +84,7 @@ $(TARGET): $(MBR_BIN) $(KERN_BIN) $(USER_BIN)
 		seek=$(USER_LBA) conv=notrunc 2>/dev/null
 
 $(KERN_OBJ) $(USER_OBJ) $(MBR_BIN): $(CONFIG_H)
+$(KERN_OBJ): CPPFLAGS += -I$(KERN)
 
 $(MBR_BIN): $(BOOT)/mbr.asm $(KERN_BIN)
 	@mkdir -p $(@D)

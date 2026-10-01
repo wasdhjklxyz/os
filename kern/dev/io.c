@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include "io.h"
+#include "dev/io.h"
 
 #define ATA_IO 0x1F0
 #define PIC_MASTER_DATA 0x21
